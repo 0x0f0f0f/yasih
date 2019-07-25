@@ -91,8 +91,8 @@ toDouble (Number n) = fromIntegral n
 -- |Parse a Complex Number
 parseComplex :: Parser LispVal
 parseComplex = do
-    realPart <- (try parseFloat <|> parseDecimal)
+    x <- (try parseFloat <|> parseDecimal)
     char '+'
-    imagPart <- (try parseFloat <|> parseDecimal)
+    y <- (try parseFloat <|> parseDecimal)
     char 'i'
-    return $ Complex (toDouble realPart :+ toDouble imagPart)
+    return $ Complex (toDouble x :+ toDouble y)
