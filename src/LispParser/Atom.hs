@@ -6,17 +6,17 @@ import Data.Complex
 import Data.Array
 
 -- |Lisp Atom data type
-data LispVal = Atom String
-    | List [LispVal]
-    | DottedList [LispVal] LispVal
-    | Vector (Array Int LispVal)
+data LispVal = Atom String -- Simple Types
     | Number Integer
     | Float Double
-    | Ratio Rational
-    | Complex (Complex Double)
     | String String
     | Character Char
     | Bool Bool
+    | Ratio Rational -- Composite types
+    | Complex (Complex Double)
+    | List [LispVal]
+    | DottedList [LispVal] LispVal
+    | Vector (Array Int LispVal)
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
 symbol :: Parser Char
