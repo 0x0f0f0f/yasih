@@ -3,11 +3,13 @@ module LispParser.Atom where
 import Text.ParserCombinators.Parsec hiding (spaces)
 import Data.Ratio
 import Data.Complex
+import Data.Array
 
 -- |Lisp Atom data type
 data LispVal = Atom String
     | List [LispVal]
     | DottedList [LispVal] LispVal
+    | Vector (Array Int LispVal)
     | Number Integer
     | Float Double
     | Ratio Rational
