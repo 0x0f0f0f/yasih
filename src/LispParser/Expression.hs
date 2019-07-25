@@ -9,6 +9,8 @@ import Data.Array
 
 import Text.ParserCombinators.Parsec hiding (spaces)
 
+parseLisp = parse parseExpr "lisp"
+
 -- |Parse an Expression (Either a String, a number or an Atom)
 parseExpr :: Parser LispVal 
 parseExpr = parseAtom

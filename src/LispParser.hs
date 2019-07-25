@@ -1,9 +1,8 @@
 module LispParser (
     module LispParser
 ,   module LispParser.Expression
+,   module LispParser.Atom
 ) where
 
 import LispParser.Expression
-
-import Text.ParserCombinators.Parsec hiding (spaces)
-
+import LispParser.Atom
