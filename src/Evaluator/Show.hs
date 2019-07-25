@@ -10,7 +10,8 @@ import Data.Complex
 -- The algebraic data type selecting a clause
 -- Based on constructors
 showVal :: LispVal -> String
--- Basic Types
+
+-- Simple Types
 showVal (Atom name) = name
 showVal (String s) = "\"" ++ s ++ "\""
 showVal (Number n) = show n
@@ -29,6 +30,9 @@ showVal (List l) =
 showVal (DottedList head tail) = 
     "(" ++ unwordsList head ++ "." ++ showVal tail ++ ")"
 
+-- #TODO: Implement showVal for Vectors
+-- showVal (Vector v) =
+--    "#(" ++ unwordsEquivalent v ++ ")"
 
 -- |Helper function mapping showVal over a Lisp List
 -- |Basically unwords for LispVal
