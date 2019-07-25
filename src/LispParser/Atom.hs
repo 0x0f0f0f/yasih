@@ -17,7 +17,6 @@ data LispVal = Atom String
     | String String
     | Character Char
     | Bool Bool
-    deriving Show
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
 symbol :: Parser Char

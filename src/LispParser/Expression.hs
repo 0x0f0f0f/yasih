@@ -25,13 +25,6 @@ parseExpr = parseAtom
     <|> try parseVector
     <|> try parseParens
 
-
--- |Parse an expression, now ignoring whitespace
-readExpr :: String -> String 
-readExpr input = case parse parseExpr "lisp" input of
-    Left err -> "No match: " ++ show err
-    Right val -> "Found value: " ++ (show val)
-
 -- |Parse a List of Atoms like a b c d
 parseList :: Parser LispVal
 parseList = sepBy parseExpr spaces >>= (return . List)

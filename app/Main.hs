@@ -5,6 +5,7 @@ import System.Environment
 import Numeric
 
 import LispParser
+import Evaluator
 
 -- |Parse the first argument
 main :: IO ()
