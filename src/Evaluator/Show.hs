@@ -27,8 +27,8 @@ showVal (Complex c) =
     (show . realPart) c ++ "+" ++ (show . imagPart) c ++ "i"
 showVal (List l) = 
     "(" ++ unwordsList l ++ ")"
-showVal (DottedList head tail) = 
-    "(" ++ unwordsList head ++ "." ++ showVal tail ++ ")"
+showVal (DottedList hd tl) = 
+    "(" ++ unwordsList hd ++ "." ++ showVal tl ++ ")"
 
 -- #TODO: Implement showVal for Vectors
 -- showVal (Vector v) =

@@ -7,17 +7,15 @@ import Numeric
 import LispParser
 import Evaluator
 
--- |Parse an expression, now ignoring whitespace
-readExpr :: String -> String 
+-- |Parse an expression
+readExpr :: String -> LispVal 
 readExpr input = case parseLisp input of
-    Left err -> "No match: " ++ show err
-    Right val -> "Found value: " ++ (show val)
+    Left err -> String $ "No match: " ++ show err
+    Right val -> val
 
--- |Parse the first argument
+-- |Parse and eval the first argument
 main :: IO ()
-main = do
-    args <- getArgs
-    putStrLn $ readExpr (args !! 0)
+main = getArgs >>= putStrLn . show . eval . readExpr . (!! 0)
 
 
 
