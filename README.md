@@ -4,9 +4,11 @@
 
 - [ ] Evaluator
 - [ ] Implement `showVal` for indexed vectors
-- [ ] Implement `eval` for complex numbers, ratios, lists and vectors
+- [ ] Implement `eval` for ~~complex numbers, ratios,~~ lists and vectors
 - [ ] Implement `numericBinop` for complex numbers and ratios
+- [ ] Implement vectors using `vector-sized` instead of `Data.Array`
 - [ ] Basic Test Suite
+- [x] Monadic error handling
 - [x] Primitive Type Checking functions
 - [x] Primitive Numerical Operations
 - [x] Expression Parser
