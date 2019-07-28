@@ -22,6 +22,14 @@ eval val@(Complex _)            = return val
 eval val@(Ratio _)              = return val
 eval (List [Atom "quote", val]) = return val
 
+-- If-clause. #f is false and any other value is considered true
+eval (List [Atom "if", pred, conseq, alt]) = do 
+    result <- eval pred 
+    -- Evaluate pred, if it is false eval alt, if true eval conseq
+    case result of 
+        Bool False -> eval alt 
+        _ -> eval conseq
+
 -- Function application clause
 -- func : args = a list with func as head and args as tail 
 -- Run eval recursively over args then apply func over the resulting list
@@ -29,6 +37,7 @@ eval (List (Atom func : args))  = mapM eval args >>= apply func
 
 -- Bad form clause
 eval badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
+
 
 -- #TODO eval remaining types:  vector, list, dottedlist
 
