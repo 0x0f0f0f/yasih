@@ -67,30 +67,25 @@ primitives =
 
     -- Symbol handling functions
     ("symbol->string", unaryOp symboltostring),
-    ("string->symbol", unaryOp stringtosymbol)]
-
-
--- #TODO extend numericBinop to allow numeric operations on complex
--- numbers and ratios
-
--- |Take a primitive Haskell Integer function and wrap it
--- with code to unpack an argument list, apply the function to it
--- and return a numeric value
-numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError LispVal
--- Throw an error if there's only one argument
-numericBinop op val@[_] = throwError $ NumArgs 2 val
--- Fold the operator leftway if there are enough args
-numericBinop op params = mapM unpackNum params >>= return . Number . foldl1 op 
+    ("string->symbol", unaryOp stringtosymbol),
     
+    -- Numerical Boolean operators
+    ("=", numBoolBinop (==)),
+    ("<", numBoolBinop (<)),
+    (">", numBoolBinop (>)),
+    ("/=", numBoolBinop (/=)),
+    (">=", numBoolBinop (>=)),
+    ("<=", numBoolBinop (<=)),
 
--- |Unpack numbers from LispValues
-unpackNum :: LispVal -> ThrowsError Integer
-unpackNum (Number n) = return n
-unpackNum (String n) = let parsed = reads n in
-    if null parsed then throwError $ TypeMismatch "number" $ String n
-    else return $ fst $ parsed !! 0
-unpackNum (List [n]) = unpackNum n
-unpackNum notNum = throwError $ TypeMismatch "number" notNum
+    -- Boolean operators
+    ("&&", boolBoolBinop (&&)),
+    ("||", boolBoolBinop (||)),
+    
+    -- String Boolean operators
+    ("string=?", strBoolBinop (==)),
+    ("string?", strBoolBinop (>)),
+    ("string<=?", strBoolBinop (<=)),
+    ("string>=?", strBoolBinop (>=))]
 
 -- |Apply an unary operator 
 unaryOp :: (LispVal -> LispVal) -> [LispVal] -> ThrowsError LispVal
@@ -126,3 +121,55 @@ symboltostring (Atom s) = String s
 symboltostring _ = String ""
 stringtosymbol (String s) = Atom s
 stringtosymbol _ = Atom ""
+
+-- |Unpack numbers from LispValues
+unpackNum :: LispVal -> ThrowsError Integer
+unpackNum (Number n) = return n
+unpackNum (String n) = let parsed = reads n in
+    if null parsed then throwError $ TypeMismatch "number" $ String n
+    else return $ fst $ parsed !! 0
+unpackNum (List [n]) = unpackNum n
+unpackNum notNum = throwError $ TypeMismatch "number" notNum
+
+-- |Unpack strings from LispVal
+unpackStr :: LispVal -> ThrowsError String
+unpackStr (String s) = return s
+unpackStr (Number s) = return $ show s 
+unpackStr (Bool s ) = return $ show s
+unpackStr notString = throwError $ TypeMismatch "string" notString
+
+-- |Unpack a Bool value from a LispVal
+unpackBool :: LispVal -> ThrowsError Bool 
+unpackBool (Bool b) = return b 
+unpackBool notBool = throwError $ TypeMismatch "boolean" notBool
+
+-- #TODO extend numericBinop to allow numeric operations on complex
+-- numbers and ratios
+
+-- |Take a primitive Haskell Integer function and wrap it
+-- with code to unpack an argument list, apply the function to it
+-- and return a numeric value
+numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError LispVal
+-- Throw an error if there's only one argument
+numericBinop op val@[_] = throwError $ NumArgs 2 val
+-- Fold the operator leftway if there are enough args
+numericBinop op params = mapM unpackNum params >>= return . Number . foldl1 op 
+    
+-- |Apply an operator to two arguments and return a Bool
+-- boolBinop unpacker operator arguments
+-- unpacker is used to unpack the arguments from LispVals to native types
+-- op performs the boolean operation
+
+boolBinop :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
+boolBinop unpacker op args = if length args /= 2
+    then throwError $ NumArgs 2 args
+    else do 
+        left <- unpacker $ args !! 0
+        right <- unpacker $ args !! 1
+        -- Op function is used as an infix operator by wrapping it in backticks
+        return $ Bool $ left `op` right 
+
+-- | Type specific boolean operators
+numBoolBinop = boolBinop unpackNum
+strBoolBinop = boolBinop unpackStr
+boolBoolBinop = boolBinop unpackBool
