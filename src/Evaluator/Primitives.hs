@@ -1,7 +1,9 @@
+{-# LANGUAGE ExistentialQuantification #-}
 module Evaluator.Primitives where
 
 import LispParser.Atom
 import Evaluator.Errors
+import Evaluator.ListPrimitives
 
 
 -- |Evaluate expressions. Returns a monadic ThrowsError value
@@ -20,8 +22,8 @@ eval val@(Character _)          = return val
 eval val@(Bool _)               = return val
 eval val@(Complex _)            = return val
 eval val@(Ratio _)              = return val
+eval val@(Vector _)             = return val
 eval (List [Atom "quote", val]) = return val
-
 -- If-clause. #f is false and any other value is considered true
 eval (List [Atom "if", pred, conseq, alt]) = do 
     result <- eval pred 
@@ -39,7 +41,7 @@ eval (List (Atom func : args))  = mapM eval args >>= apply func
 eval badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
 
 
--- #TODO eval remaining types:  vector, list, dottedlist
+-- #TODO eval remaining types:  vector, 
 
 -- |Apply a function defined in a primitives table
 -- apply func args
@@ -94,7 +96,15 @@ primitives =
     ("string=?", strBoolBinop (==)),
     ("string?", strBoolBinop (>)),
     ("string<=?", strBoolBinop (<=)),
-    ("string>=?", strBoolBinop (>=))]
+    ("string>=?", strBoolBinop (>=)),
+    
+    -- List primitives
+    ("car", car),
+    ("cdr", cdr),
+    ("cons", cons),
+    ("eq?", eqv),
+    ("eqv?", eqv),
+    ("equal?", equal)]
 
 -- |Apply an unary operator 
 unaryOp :: (LispVal -> LispVal) -> [LispVal] -> ThrowsError LispVal
@@ -182,3 +192,60 @@ boolBinop unpacker op args = if length args /= 2
 numBoolBinop = boolBinop unpackNum
 strBoolBinop = boolBinop unpackStr
 boolBoolBinop = boolBinop unpackBool
+
+
+-- Equivalence primitive functions
+
+-- |eqv checks for the equivalence of two items
+eqv :: [LispVal] -> ThrowsError LispVal
+eqv [(Bool x), (Bool y)]           = return $ Bool $ x == y
+eqv [(Number x), (Number y)]       = return $ Bool $ x == y
+eqv [(Float x), (Float y)]         = return $ Bool $ x == y
+eqv [(Ratio x), (Ratio y)]         = return $ Bool $ x == y
+eqv [(Complex x), (Complex y)]     = return $ Bool $ x == y
+eqv [(Character x), (Character y)] = return $ Bool $ x == y
+eqv [(String x), (String y)]       = return $ Bool $ x == y
+eqv [(Atom x), (Atom y)]           = return $ Bool $ x == y
+
+eqv [(DottedList xs x), (DottedList ys y)]
+    = eqv [List $ xs ++ [x], List $ ys ++ [y]]
+eqv [(List x), (List y)] = return $ 
+    Bool $ (length x == length y) && (all eqvPair $ zip x y)
+
+eqv [_, _] = return $ Bool False 
+eqv badArgList = throwError $ NumArgs 2 badArgList
+
+-- |Helper function to check for the equivalence of a pair of items
+eqvPair (j, k) = case eqv [j, k] of
+    Left err -> False 
+    Right (Bool val) -> val
+
+-- |Data type that can hold any function to a LispVal into a native type
+data Unpacker = forall a . Eq a => AnyUnpacker (LispVal -> ThrowsError a)
+
+-- |Helper function that takes an Unpacker and determines if two LispVals
+-- are equal before unpacking them
+unpackEquals :: LispVal -> LispVal -> Unpacker -> ThrowsError Bool 
+unpackEquals x y (AnyUnpacker unpacker) = do 
+    unpacked1 <- unpacker x 
+    unpacked2 <- unpacker y
+    return $ unpacked1 == unpacked2 
+    `catchError` (const $ return False)
+
+-- |Check equivalence of two items with weak typing 
+-- (equal? 2 "2") should return #t while (eqv? 2 "2") => #f
+-- This approach uses Existential Types, a ghc extension that
+-- allows for heterogenous lists subject to typeclass constraints
+equal :: [LispVal] -> ThrowsError LispVal
+equal [x, y] = do 
+    -- Make an heterogenous list of [unpackNum, unpackStr, unpackBool]\
+    -- and then map the partially applied unpackEquals over it, giving a list
+    -- of Bools. We use 'or' to return true if any one of them is true.
+    primitiveEquals <- liftM or $ mapM (unpackEquals x y) 
+        [AnyUnpacker unpackNum, AnyUnpacker unpackStr, AnyUnpacker unpackBool]
+    -- Simply test the two arguments with eqv?, since eqv? is stricter than
+    -- equal? return true whenever eqv? does
+    eqvEquals <- eqv [x, y]
+    -- Return a disjunction of eqvEquals and primitiveEquals
+    return $ Bool $ (primitiveEquals || let (Bool x) = eqvEquals in x)
+equal badArgList = throwError $ NumArgs 2 badArgList

@@ -4,6 +4,7 @@ import LispParser
 
 import Data.Ratio
 import Data.Complex
+import Data.Array
 
 -- |Print the content of a LispVal
 -- Pattern matching is used to destructure
@@ -31,8 +32,8 @@ showVal (DottedList hd tl) =
     "(" ++ unwordsList hd ++ "." ++ showVal tl ++ ")"
 
 -- #TODO: Implement showVal for Vectors
--- showVal (Vector v) =
---    "#(" ++ unwordsEquivalent v ++ ")"
+--showVal (Vector v) =
+--    "#(" ++ unwordsVector v ++ ")"
 
 -- |Helper function mapping showVal over a Lisp List
 -- |Basically unwords for LispVal
@@ -51,6 +52,9 @@ showVal (DottedList hd tl) =
 -}
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map showVal
+
+--unwordsVector :: LispVal -> String 
+--unwordsVector (Vector y) = unwords . map showVal $ elems y
 
 -- |Defining the show method for LispVal
 -- See https://www.haskell.org/tutorial/classes.html 
