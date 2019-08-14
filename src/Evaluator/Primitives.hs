@@ -82,9 +82,6 @@ eval (List (Atom func : args))  = mapM eval args >>= apply func
 -- Bad form clause
 eval badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
 
-
--- #TODO eval remaining types:  vector, 
-
 -- |Apply a function defined in a primitives table
 -- apply func args
 -- Look for func into the primitives table then return 

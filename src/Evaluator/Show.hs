@@ -29,7 +29,7 @@ showVal (Complex c) =
 showVal (List l) = 
     "(" ++ unwordsList l ++ ")"
 showVal (DottedList hd tl) = 
-    "(" ++ unwordsList hd ++ "." ++ showVal tl ++ ")"
+    "(" ++ unwordsList hd ++ " . " ++ showVal tl ++ ")"
 
 -- #TODO: Implement showVal for Vectors
 --showVal (Vector v) =
