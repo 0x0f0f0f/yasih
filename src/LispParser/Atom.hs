@@ -17,6 +17,7 @@ data LispVal = Atom String -- Simple Types
     | List [LispVal]
     | DottedList [LispVal] LispVal
     | Vector (Array Int LispVal)
+    deriving Eq
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
 symbol :: Parser Char

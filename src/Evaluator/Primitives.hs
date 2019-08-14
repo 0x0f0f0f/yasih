@@ -34,6 +34,46 @@ eval (List [Atom "if", pred, conseq, alt]) = do
         Bool True -> eval conseq
         badArg -> throwError $ TypeMismatch "boolean" badArg 
 
+-- cond clause: test each one of the alts clauses and eval the first
+-- which test evaluates to true, otherwise eval the 'else' clause
+-- Example: (cond ((> 3 2) 'greater) ((< 3 2) 'less) (else 'equal))
+-- Evaluates to the atom greater.
+-- see https://schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.1
+eval form@(List ((Atom "cond") : clauses)) = if null clauses
+    then throwError $ BadSpecialForm "No true clause in cond expression" form 
+    else case head clauses of
+        List [Atom "else", expr] -> eval expr 
+        -- Piggy back the evaluation of the clauses on the already
+        -- Existing if clause.
+        List [test, expr] -> eval $ List [Atom "if", test, expr,
+            -- If test is not true, recurse the evaluation of 
+            -- cond on the remaining clauses 
+            List (Atom "cond" : tail clauses)]
+        _ -> throwError $ BadSpecialForm "Ill-formed clause in cond expression" form
+
+
+-- case expression
+-- Evaluate a key expression and iterate over ((<datum1>, ...) expr) clauses
+-- To check if the key value appears at least once in the datums list.
+-- If so, evaluate that clause.
+-- Example: 
+-- (case (* 2 3)
+--   ((2 3 5 7) 'prime)
+--   ((1 4 6 8 9) 'composite))             ===>  composite
+eval form@(List ((Atom "case") : key : clauses)) = if null clauses
+    then throwError $ BadSpecialForm "No true clause in case expression" form
+    else case head clauses of
+        List (Atom "else" : exprs) -> mapM eval exprs >>= return . last 
+        List ((List datums) : exprs) -> do 
+            keyValue <- eval key -- Evaluate the key
+            -- Iterate over datums to check for an equal one
+            equality <- mapM (\x -> eqv [keyValue, x]) datums 
+            if Bool True `elem` equality
+                then mapM eval exprs >>= return . last
+                else eval $ List (Atom "case" : key : tail clauses)
+        _ -> throwError $ BadSpecialForm "Ill-formed clause in case expression" form
+
+
 -- Function application clause
 -- func : args = a list with func as head and args as tail 
 -- Run eval recursively over args then apply func over the resulting list

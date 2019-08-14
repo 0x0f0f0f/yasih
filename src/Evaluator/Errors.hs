@@ -30,6 +30,7 @@ data LispError = NumArgs Integer [LispVal]
 
 -- Make LispError an instance of Show
 showError :: LispError -> String
+showError (Default msg) = show msg
 showError (TypeMismatch expected found) = "Invalid type: expected "    
     ++ expected ++ ", found " ++ show found 
 showError (Parser parseErr) = "Parse error at " ++ show parseErr
