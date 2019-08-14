@@ -29,7 +29,7 @@ library:
   source-dirs: src
 
 executables:
-  haskell-toy-scheme-exe:
+  toy-scheme:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

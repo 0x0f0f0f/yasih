@@ -49,4 +49,4 @@ until_ pred prompt action = do
 
 -- |REPL
 runRepl :: IO ()
-runRepl = until_ (== "quit") (readPrompt "Lisp>>> ") evalAndPrint
+runRepl = until_ (== "quit") (readPrompt "λ> ") evalAndPrint
