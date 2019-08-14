@@ -49,3 +49,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - haskell-toy-scheme
+    - hspec

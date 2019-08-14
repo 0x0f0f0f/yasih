@@ -24,13 +24,15 @@ eval val@(Complex _)            = return val
 eval val@(Ratio _)              = return val
 eval val@(Vector _)             = return val
 eval (List [Atom "quote", val]) = return val
+
 -- If-clause. #f is false and any other value is considered true
 eval (List [Atom "if", pred, conseq, alt]) = do 
     result <- eval pred 
     -- Evaluate pred, if it is false eval alt, if true eval conseq
     case result of 
         Bool False -> eval alt 
-        _ -> eval conseq
+        Bool True -> eval conseq
+        badArg -> throwError $ TypeMismatch "boolean" badArg 
 
 -- Function application clause
 -- func : args = a list with func as head and args as tail 
@@ -207,11 +209,12 @@ eqv [(Character x), (Character y)] = return $ Bool $ x == y
 eqv [(String x), (String y)]       = return $ Bool $ x == y
 eqv [(Atom x), (Atom y)]           = return $ Bool $ x == y
 
+-- eqv clause for Dotted list builds a full list and calls itself on it
 eqv [(DottedList xs x), (DottedList ys y)]
-    = eqv [List $ xs ++ [x], List $ ys ++ [y]]
-eqv [(List x), (List y)] = return $ 
-    Bool $ (length x == length y) && (all eqvPair $ zip x y)
+    = eqv [List $ xs ++ [x], List $ ys ++ [y]] 
 
+-- use the helper function eqvList using eqv to compare pair by pair
+eqv [l1@(List x), l2@(List y)] = eqvList eqv [l1, l2]
 eqv [_, _] = return $ Bool False 
 eqv badArgList = throwError $ NumArgs 2 badArgList
 
@@ -236,7 +239,13 @@ unpackEquals x y (AnyUnpacker unpacker) = do
 -- (equal? 2 "2") should return #t while (eqv? 2 "2") => #f
 -- This approach uses Existential Types, a ghc extension that
 -- allows for heterogenous lists subject to typeclass constraints
+
 equal :: [LispVal] -> ThrowsError LispVal
+-- use the helper function eqvList using equal to compare pair by pair
+equal [l1@(List x), l2@(List y)] = eqvList equal [l1, l2]
+-- eqv clause for Dotted list builds a full list and calls itself on it
+equal [(DottedList xs x), (DottedList ys y)]
+    = equal [List $ xs ++ [x], List $ ys ++ [y]] 
 equal [x, y] = do 
     -- Make an heterogenous list of [unpackNum, unpackStr, unpackBool]\
     -- and then map the partially applied unpackEquals over it, giving a list
@@ -249,3 +258,9 @@ equal [x, y] = do
     -- Return a disjunction of eqvEquals and primitiveEquals
     return $ Bool $ (primitiveEquals || let (Bool x) = eqvEquals in x)
 equal badArgList = throwError $ NumArgs 2 badArgList
+
+-- |Helper function that checks for the equivalence of items in two lists
+-- accepts a function as the first argument to allow for both strong/weak equivalence
+eqvList :: ([LispVal] -> ThrowsError LispVal) -> [LispVal] -> ThrowsError LispVal
+eqvList eqvFunc [(List x), (List y)] = return $ Bool $ (length x == length y)
+        && (all eqvPair $ zip x y )

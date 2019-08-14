@@ -21,11 +21,4 @@ main = do
     args <- getArgs 
     evaluated <- return $ liftM show $ readExpr (args !! 0) >>= eval
     putStrLn $ extractValue $ trapError evaluated
-
-    
-    
-    
-    
-    
-    
     
