@@ -141,6 +141,8 @@ primitives =
     ("car", car),
     ("cdr", cdr),
     ("cons", cons),
+
+    -- Equivalence primitives
     ("eq?", eqv),
     ("eqv?", eqv),
     ("equal?", equal)]

@@ -4,7 +4,7 @@
 
 - [ ] Implement `showVal` for indexed vectors
 - [ ] Implement `numericBinop` for complex numbers and ratios
-- [ ] Basic Test Suite
+- [ ] Basic Unit Test Suite
 - [ ] Implement vectors using `vector-sized` instead of `Data.Array`
 - [ ] Standard Library (Chapter 10)
 - [ ] Fold and Unfold (Chapter 10)
@@ -12,6 +12,7 @@
 - [ ] Closures and Environments (Chapter 8)
 - [ ] Mutable State (Chapter 7)
 - [ ] Implement the rest of string functions (Exercise 5.4)
+- [ ] Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part
 - [x] Implement a REPL
 - [x] Implement `cond` and `case` expressions (Exercise 5.3)
 - [x] Implement `eval` for complex numbers, ratios, lists and vectors
@@ -22,6 +23,7 @@
 
 ## Bugs
 
+- [ ] Handle Exit code on error correctly.
 - [x] ~~`equal?` does not recurse over lists. (Exercise 5.2)~~
 
 ## Installation
