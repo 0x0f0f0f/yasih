@@ -59,7 +59,19 @@ t "(+ 3+4i 5+7i)" "8.0+11.0i"
 t "(- 3+4i 5+7i)" "-2.0-3.0i"
 t "(* 3+4i 5+7i)" "-13.0+41.0i"
 
+describe "Basic arithmetic primitives on Floats"
+#TODO implement test
+
+describe "Basic arithmetic primitives on Mixed type numbers"
+#TODO implement test
+
 describe "Numerical boolean operators"
+#TODO implement test
+
+describe "Numerical boolean operators on Complex"
+#TODO implement test
+
+describe "Numerical boolean operators on float"
 #TODO implement test
 
 describe "Boolean operators"
