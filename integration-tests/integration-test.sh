@@ -87,6 +87,8 @@ describe "Symbol handling primitives"
 #TODO implement test
 
 describe "if-clause"
+t "(if (> 3 2) 'correct 'wrong)" "correct"
+t "(if (> 2 3) 'wrong 'correct)" "correct"
 #TODO implement test
 
 describe "case-clause"
