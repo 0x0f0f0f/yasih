@@ -9,9 +9,10 @@
 - [ ] Standard Library (Chapter 10)
 - [ ] Fold and Unfold (Chapter 10)
 - [ ] File I/O Primitives (Chapter 9)
-- [ ] Closures and Environments (Chapter 8)
-- [X] Mutable State (Chapter 7)
 - [ ] Implement the rest of string functions (Exercise 5.4)
+- [ ] Solve circular import
+- [X] Closures and Environments (Chapter 8)
+- [X] Mutable State (Chapter 7)
 - [ ] Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part
 - [x] Implement a REPL
 - [x] Implement `cond` and `case` expressions (Exercise 5.3)
