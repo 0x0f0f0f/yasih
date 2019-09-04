@@ -6,6 +6,9 @@ import Data.Complex
 import Data.Array
 import Data.IORef
 
+import Evaluator.Errors
+import Evaluator.Environment
+
 -- |Lisp Atom data type
 data LispVal = Atom String -- Simple Types
     | Number Integer
