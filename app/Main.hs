@@ -14,7 +14,7 @@ main = do
     args <- getArgs 
     case length args of 
         0 -> runRepl -- No argument is passed => run the REPL
-        1 -> evalAndPrint $ args !! 0
+        1 -> runOne $ head args
         _ -> do
             putStrLn "Usage: haskell-toy-scheme [EXPR]"
             putStrLn "If EXPR is provided evaluate it. Otherwise run the REPL."

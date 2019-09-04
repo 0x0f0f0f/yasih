@@ -31,5 +31,5 @@ parseAtom :: Parser LispVal
 parseAtom = do 
     first <- letter <|> symbol
     rest <- many (letter <|> digit <|> symbol)
-    return $ Atom ( [first] ++ rest )
+    return $ Atom ( first : rest )
 

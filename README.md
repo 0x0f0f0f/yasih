@@ -10,7 +10,7 @@
 - [ ] Fold and Unfold (Chapter 10)
 - [ ] File I/O Primitives (Chapter 9)
 - [ ] Closures and Environments (Chapter 8)
-- [ ] Mutable State (Chapter 7)
+- [X] Mutable State (Chapter 7)
 - [ ] Implement the rest of string functions (Exercise 5.4)
 - [ ] Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part
 - [x] Implement a REPL

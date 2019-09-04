@@ -26,14 +26,14 @@ readPrompt :: String -> IO String
 readPrompt prompt = flushStr prompt >> getLine
 
 -- |Pull the code to parse, evaluate a string and trap the errors out of main
-evalString :: String -> IO String 
-evalString expr = return $ extractValue $ trapError
-    (liftM show $ readExpr expr >>= eval)
+evalString :: Env -> String -> IO String 
+evalString env expr = runIOThrows $ 
+    liftM show $ liftThrows (readExpr expr) >>= eval env
 
 -- |Evaluate a string and print the result
 
-evalAndPrint :: String -> IO ()
-evalAndPrint expr = evalString expr >>= putStrLn
+evalAndPrint :: Env -> String -> IO ()
+evalAndPrint env expr = evalString env expr >>= putStrLn
 
 -- |Custom loop for REPL. Monadic functions that repeats but does not return a
 -- value. until_ takes a predicate that signals when to stop, an action to
@@ -47,6 +47,10 @@ until_ pred prompt action = do
         -- Else run action then recurse-loop
         else action result >> until_ pred prompt action 
 
+-- |Eval an expression initializing a null environment
+runOne :: String -> IO ()
+runOne expr = nullEnv >>= flip evalAndPrint expr
+
 -- |REPL
 runRepl :: IO ()
-runRepl = until_ (== "quit") (readPrompt "λ> ") evalAndPrint
+runRepl = nullEnv >>= until_ (== "quit") (readPrompt "λ> ") . evalAndPrint

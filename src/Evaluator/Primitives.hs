@@ -4,7 +4,7 @@ module Evaluator.Primitives where
 import LispParser.Atom
 import Evaluator.Errors
 import Evaluator.ListPrimitives
-
+import Evaluator.Environment
 
 -- |Evaluate expressions. Returns a monadic ThrowsError value
 -- In Lisp, data types for both code and data are the same
@@ -14,24 +14,35 @@ import Evaluator.ListPrimitives
 -- The val@ notation matches against any LispVal that corresponds
 -- To the specified constructor then binds it back into a LispVal
 -- The result has type LispVal instead of the matched Constructor
-eval :: LispVal -> ThrowsError LispVal
-eval val@(String _)             = return val
-eval val@(Number _)             = return val
-eval val@(Float _)              = return val
-eval val@(Character _)          = return val
-eval val@(Bool _)               = return val
-eval val@(Complex _)            = return val
-eval val@(Ratio _)              = return val
-eval val@(Vector _)             = return val
-eval (List [Atom "quote", val]) = return val
+eval :: Env -> LispVal -> IOThrowsError LispVal
+eval env val@(String _)             = return val
+eval env val@(Number _)             = return val
+eval env val@(Float _)              = return val
+eval env val@(Character _)          = return val
+eval env val@(Bool _)               = return val
+eval env val@(Complex _)            = return val
+eval env val@(Ratio _)              = return val
+eval env val@(Vector _)             = return val
+eval env (List [Atom "quote", val]) = return val
+
+-- Get a variable
+eval env (Atom id) = getVar env id
+
+-- Set a variable
+eval env (List [Atom "set!", Atom var, form]) =
+    eval env form >>= setVar env var
+
+-- Define a variable
+eval env (List [Atom "define", Atom var, form]) =
+    eval env form >>= defineVar env  var
 
 -- If-clause. #f is false and any other value is considered true
-eval (List [Atom "if", pred, conseq, alt]) = do 
-    result <- eval pred 
+eval env (List [Atom "if", pred, conseq, alt]) = do 
+    result <- eval env pred 
     -- Evaluate pred, if it is false eval alt, if true eval conseq
     case result of 
-        Bool False -> eval alt 
-        Bool True -> eval conseq
+        Bool False -> eval env alt 
+        Bool True -> eval env conseq
         badArg -> throwError $ TypeMismatch "boolean" badArg 
 
 -- cond clause: test each one of the alts clauses and eval the first
@@ -39,13 +50,13 @@ eval (List [Atom "if", pred, conseq, alt]) = do
 -- Example: (cond ((> 3 2) 'greater) ((< 3 2) 'less) (else 'equal))
 -- Evaluates to the atom greater.
 -- see https://schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.1
-eval form@(List ((Atom "cond") : clauses)) = if null clauses
+eval env form@(List (Atom "cond" : clauses)) = if null clauses
     then throwError $ BadSpecialForm "No true clause in cond expression" form 
     else case head clauses of
-        List [Atom "else", expr] -> eval expr 
+        List [Atom "else", expr] -> eval env expr 
         -- Piggy back the evaluation of the clauses on the already
         -- Existing if clause.
-        List [test, expr] -> eval $ List [Atom "if", test, expr,
+        List [test, expr] -> eval env $ List [Atom "if", test, expr,
             -- If test is not true, recurse the evaluation of 
             -- cond on the remaining clauses 
             List (Atom "cond" : tail clauses)]
@@ -60,27 +71,28 @@ eval form@(List ((Atom "cond") : clauses)) = if null clauses
 -- (case (* 2 3)
 --   ((2 3 5 7) 'prime)
 --   ((1 4 6 8 9) 'composite))             ===>  composite
-eval form@(List ((Atom "case") : key : clauses)) = if null clauses
+eval env form@(List (Atom "case" : (key : clauses))) = if null clauses
     then throwError $ BadSpecialForm "No true clause in case expression" form
     else case head clauses of
-        List (Atom "else" : exprs) -> mapM eval exprs >>= return . last 
-        List ((List datums) : exprs) -> do 
-            keyValue <- eval key -- Evaluate the key
+        List (Atom "else" : exprs) -> mapM (eval env) exprs >>= liftThrows . return . last 
+        List (List datums : exprs) -> do 
+            keyValue <- eval env key -- Evaluate the key
             -- Iterate over datums to check for an equal one
-            equality <- mapM (\x -> eqv [keyValue, x]) datums 
+            equality <- mapM (\x -> liftThrows (eqv [keyValue, x])) datums 
             if Bool True `elem` equality
-                then mapM eval exprs >>= return . last
-                else eval $ List (Atom "case" : key : tail clauses)
+                then mapM (eval env) exprs >>= liftThrows . return . last
+                else eval env $ List (Atom "case" : key : tail clauses)
         _ -> throwError $ BadSpecialForm "Ill-formed clause in case expression" form
 
 
 -- Function application clause
 -- func : args = a list with func as head and args as tail 
 -- Run eval recursively over args then apply func over the resulting list
-eval (List (Atom func : args))  = mapM eval args >>= apply func
+eval env (List (Atom func : args))  = mapM (eval env) args 
+    >>= liftThrows . apply func
 
 -- Bad form clause
-eval badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
+eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
 
 -- |Apply a function defined in a primitives table
 -- apply func args
@@ -147,6 +159,8 @@ primitives =
     ("eqv?", eqv),
     ("equal?", equal)]
 
+-- #TODO define string operators
+
 -- |Apply an unary operator 
 unaryOp :: (LispVal -> LispVal) -> [LispVal] -> ThrowsError LispVal
 unaryOp f [v] = return $ f v
@@ -187,7 +201,7 @@ unpackNum :: LispVal -> ThrowsError Integer
 unpackNum (Number n) = return n
 unpackNum (String n) = let parsed = reads n in
     if null parsed then throwError $ TypeMismatch "number" $ String n
-    else return $ fst $ parsed !! 0
+    else return $ fst $ head parsed
 unpackNum (List [n]) = unpackNum n
 unpackNum notNum = throwError $ TypeMismatch "number" notNum
 
@@ -224,7 +238,7 @@ boolBinop :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> Thro
 boolBinop unpacker op args = if length args /= 2
     then throwError $ NumArgs 2 args
     else do 
-        left <- unpacker $ args !! 0
+        left <- unpacker $ head args
         right <- unpacker $ args !! 1
         -- Op function is used as an infix operator by wrapping it in backticks
         return $ Bool $ left `op` right 
@@ -239,17 +253,17 @@ boolBoolBinop = boolBinop unpackBool
 
 -- |eqv checks for the equivalence of two items
 eqv :: [LispVal] -> ThrowsError LispVal
-eqv [(Bool x), (Bool y)]           = return $ Bool $ x == y
-eqv [(Number x), (Number y)]       = return $ Bool $ x == y
-eqv [(Float x), (Float y)]         = return $ Bool $ x == y
-eqv [(Ratio x), (Ratio y)]         = return $ Bool $ x == y
-eqv [(Complex x), (Complex y)]     = return $ Bool $ x == y
-eqv [(Character x), (Character y)] = return $ Bool $ x == y
-eqv [(String x), (String y)]       = return $ Bool $ x == y
-eqv [(Atom x), (Atom y)]           = return $ Bool $ x == y
+eqv [Bool x, Bool y]           = return $ Bool $ x == y
+eqv [Number x, Number y]       = return $ Bool $ x == y
+eqv [Float x, Float y]         = return $ Bool $ x == y
+eqv [Ratio x, Ratio y]         = return $ Bool $ x == y
+eqv [Complex x, Complex y]     = return $ Bool $ x == y
+eqv [Character x, Character y] = return $ Bool $ x == y
+eqv [String x, String y]       = return $ Bool $ x == y
+eqv [Atom x, Atom y]           = return $ Bool $ x == y
 
 -- eqv clause for Dotted list builds a full list and calls itself on it
-eqv [(DottedList xs x), (DottedList ys y)]
+eqv [DottedList xs x, DottedList ys y]
     = eqv [List $ xs ++ [x], List $ ys ++ [y]] 
 
 -- use the helper function eqvList using eqv to compare pair by pair
@@ -272,7 +286,7 @@ unpackEquals x y (AnyUnpacker unpacker) = do
     unpacked1 <- unpacker x 
     unpacked2 <- unpacker y
     return $ unpacked1 == unpacked2 
-    `catchError` (const $ return False)
+    `catchError` const (return False)
 
 -- |Check equivalence of two items with weak typing 
 -- (equal? 2 "2") should return #t while (eqv? 2 "2") => #f
@@ -283,7 +297,7 @@ equal :: [LispVal] -> ThrowsError LispVal
 -- use the helper function eqvList using equal to compare pair by pair
 equal [l1@(List x), l2@(List y)] = eqvList equal [l1, l2]
 -- eqv clause for Dotted list builds a full list and calls itself on it
-equal [(DottedList xs x), (DottedList ys y)]
+equal [DottedList xs x, DottedList ys y]
     = equal [List $ xs ++ [x], List $ ys ++ [y]] 
 equal [x, y] = do 
     -- Make an heterogenous list of [unpackNum, unpackStr, unpackBool]\
@@ -295,11 +309,11 @@ equal [x, y] = do
     -- equal? return true whenever eqv? does
     eqvEquals <- eqv [x, y]
     -- Return a disjunction of eqvEquals and primitiveEquals
-    return $ Bool $ (primitiveEquals || let (Bool x) = eqvEquals in x)
+    return $ Bool $ primitiveEquals || let (Bool x) = eqvEquals in x
 equal badArgList = throwError $ NumArgs 2 badArgList
 
 -- |Helper function that checks for the equivalence of items in two lists
 -- accepts a function as the first argument to allow for both strong/weak equivalence
 eqvList :: ([LispVal] -> ThrowsError LispVal) -> [LispVal] -> ThrowsError LispVal
-eqvList eqvFunc [(List x), (List y)] = return $ Bool $ (length x == length y)
-        && (all eqvPair $ zip x y )
+eqvList eqvFunc [List x, List y] = return $ Bool $ (length x == length y)
+        && all eqvPair (zip x y)
