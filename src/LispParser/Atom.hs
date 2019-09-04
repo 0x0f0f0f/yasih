@@ -4,6 +4,7 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 import Data.Ratio
 import Data.Complex
 import Data.Array
+import Data.IORef
 
 -- |Lisp Atom data type
 data LispVal = Atom String -- Simple Types
@@ -17,6 +18,15 @@ data LispVal = Atom String -- Simple Types
     | List [LispVal]
     | DottedList [LispVal] LispVal
     | Vector (Array Int LispVal)
+    -- Stores a primitive function
+    | PrimitiveFunc ([LispVal] -> ThrowsError LispVal)
+    -- Generalized function type
+    | Func {
+        params :: [String], -- Parameters name
+        vararg :: Maybe String, -- name of a variable-length argument list
+        body :: [LispVal], -- list of expressions
+        closure :: Env -- the environment where the function was created
+        }
     deriving Eq
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
@@ -32,4 +42,3 @@ parseAtom = do
     first <- letter <|> symbol
     rest <- many (letter <|> digit <|> symbol)
     return $ Atom ( first : rest )
-

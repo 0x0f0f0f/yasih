@@ -35,6 +35,14 @@ showVal (DottedList hd tl) =
 --showVal (Vector v) =
 --    "#(" ++ unwordsVector v ++ ")"
 
+-- Show for primitive and general functions
+showVal (PrimitiveFunc _) = "<primitive"
+showVal Func { params = args, vararg = varargs, body = body, closure = env} =
+    "(lambda (" ++ unwords (map show args) ++ 
+    (case varargs of 
+        Nothing -> ""
+        Just arg -> " . " ++ arg) ++ ") ...)"
+
 -- |Helper function mapping showVal over a Lisp List
 -- |Basically unwords for LispVal
 

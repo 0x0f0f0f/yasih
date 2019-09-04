@@ -49,8 +49,8 @@ until_ pred prompt action = do
 
 -- |Eval an expression initializing a null environment
 runOne :: String -> IO ()
-runOne expr = nullEnv >>= flip evalAndPrint expr
+runOne expr = primitiveBindings >>= flip evalAndPrint expr
 
 -- |REPL
 runRepl :: IO ()
-runRepl = nullEnv >>= until_ (== "quit") (readPrompt "λ> ") . evalAndPrint
+runRepl = primitiveBindings >>= until_ (== "quit") (readPrompt "λ> ") . evalAndPrint

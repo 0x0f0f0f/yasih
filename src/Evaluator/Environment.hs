@@ -1,6 +1,6 @@
 module Evaluator.Environment where 
 
-import LispParser
+import LispParser.Atom
 import Data.IORef -- IORef module enables for stateful variables in IO monad
 import Evaluator.Errors
 import Control.Monad.Except

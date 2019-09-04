@@ -6,9 +6,14 @@ import Evaluator.Errors
 import Evaluator.ListPrimitives
 import Evaluator.Environment
 
--- |Evaluate expressions. Returns a monadic ThrowsError value
+-- |Helper functions to create function objects in IOThrowsError monad
+makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
+makeNormalFunc = makeFunc Nothing 
+makeVarargs = makeFunc . Just . showVal
+
+-- |Evaluate expressions. Returns a monadic IOThrowsError value
 -- In Lisp, data types for both code and data are the same
--- This means that this Evaluator returns a value of type ThrowsError LispVal
+-- This means that this Evaluator returns a value of type IOThrowsError LispVal
 
 
 -- The val@ notation matches against any LispVal that corresponds
@@ -35,6 +40,30 @@ eval env (List [Atom "set!", Atom var, form]) =
 -- Define a variable
 eval env (List [Atom "define", Atom var, form]) =
     eval env form >>= defineVar env  var
+
+-- Define a function
+-- (define (f x y) (+ x y)) => (lamda ("x" "y") ...)
+eval env (List (Atom "define" : List (Atom var : params) : body)) = 
+    makeNormalFunc env params body >>= defineVar env var
+
+-- Define a variable argument function
+-- (define (func a b) c . body)
+eval env (DottedList (Atom "define" : List (Atom var : params) : varargs : body)) = 
+    makeVarargs varargs env params body >>= defineVar env var
+
+-- λλλ Lambda functions! λλλ
+-- (lambda (a b c) (+ a b c))
+eval env (List (Atom "lambda" : List params : body)) =
+    makeNormalFunc env params body 
+
+-- (lambda (a b c . d) body)
+eval env (List (Atom "lambda" : DottedList params varargs: body)) =
+    makeVarargs varargs env params body
+
+-- (lambda (a b c . d) body)
+eval env (List (Atom "lambda" : varargs@(Atom _) : body)) =
+    makeVarargs varargs env [] body
+
 
 -- If-clause. #f is false and any other value is considered true
 eval env (List [Atom "if", pred, conseq, alt]) = do 
@@ -86,10 +115,11 @@ eval env form@(List (Atom "case" : (key : clauses))) = if null clauses
 
 
 -- Function application clause
--- func : args = a list with func as head and args as tail 
 -- Run eval recursively over args then apply func over the resulting list
-eval env (List (Atom func : args))  = mapM (eval env) args 
-    >>= liftThrows . apply func
+eval env (List (function : args)) = do
+    func <- eval env function
+    argVals <- mapM (eval env) args
+    apply func argVal
 
 -- Bad form clause
 eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
@@ -98,10 +128,34 @@ eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badFo
 -- apply func args
 -- Look for func into the primitives table then return 
 -- the corresponding function if found, otherwise throw an error
-apply :: String -> [LispVal] -> ThrowsError LispVal
-apply func args = maybe (throwError $ NotFunction "Unrecognized primitive function args" func)
-    ($ args) -- Apply it to the arguments
-    $ lookup func primitives -- Look for the function
+apply :: LispVal -> [LispVal] -> ThrowsError LispVal
+apply (PrimitiveFunc func) args = liftThrows $ func args 
+apply (Func params varargs body closure) args = 
+    -- Throw error if argument number is wrong
+    if num params /= num args && isNothing varargs 
+        then throwError $ NumArgs (num params) args
+        else 
+            -- Bind arguments to a new env and execute statements
+            -- Zip together parameter names and already evaluated args
+            -- together into a list of pairs, then create 
+            -- a new environment for the function closure 
+            liftIO (bindVars closure $ zip params args)
+            >>= bindVarArgs varargs >>= evalBody
+    where
+        remainingArgs = drop (length params) args
+        num = toInteger . length
+        -- Map the monadic function eval env over every statement in the func body
+        evalBody env = liftM last $ mapM (eval env) body
+        -- Bind variable argument list to env if present
+        bindVarArgs arg env = case arg of
+            Just argName -> liftIO $ bindVars env [(argName, List remainingArgs)]
+            Nothing -> return env
+
+-- |Take an initial null environment, make name/value pairs and bind
+-- primitives into the new environment
+primitiveBindings :: IO Env 
+primitiveBindings = nullEnv >>= flip bindVars $ map makePrimitiveFunc primitives
+    where makePrimitiveFunc (var, func) = (var, PrimitiveFunc func)
 
 -- |Primitive functions table
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
