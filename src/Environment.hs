@@ -3,6 +3,7 @@ module Environment where
 import LispTypes
 
 import Data.IORef
+import Data.List
 import Control.Monad.Except
 
 
@@ -89,3 +90,10 @@ bindVars envRef bindings =
         addBinding (var, value) = do 
             newVal <- newIORef value
             return (var, newVal)
+
+        
+-- |Helper functions to create function objects in IOThrowsError monad
+makeFunc :: Maybe String -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
+makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
+makeNormalFunc = makeFunc Nothing 
+makeVarargs = makeFunc . Just . showVal

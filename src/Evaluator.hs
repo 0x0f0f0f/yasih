@@ -8,12 +8,6 @@ import Data.IORef
 import Data.Maybe
 import Control.Monad.Except
 
-
--- |Helper functions to create function objects in IOThrowsError monad
-makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
-makeNormalFunc = makeFunc Nothing 
-makeVarargs = makeFunc . Just . showVal
-
 -- |Evaluate expressions. Returns a monadic IOThrowsError value
 -- In Lisp, data types for both code and data are the same
 -- This means that this Evaluator returns a value of type IOThrowsError LispVal
@@ -42,7 +36,7 @@ eval env (List [Atom "set!", Atom var, form]) =
 
 -- Define a variable
 eval env (List [Atom "define", Atom var, form]) =
-    eval env form >>= defineVar env  var
+    eval env form >>= defineVar env var
 
 -- Define a function
 -- (define (f x y) (+ x y)) => (lamda ("x" "y") ...)
@@ -151,7 +145,7 @@ apply (Func params varargs body closure) args =
         evalBody env = liftM last $ mapM (eval env) body
         -- Bind variable argument list to env if present
         bindVarArgs arg env = case arg of
-            Just argName -> liftIO $ bindVars env [(argName, List remainingArgs)]
+            Just argName -> liftIO $ bindVars env [(argName, List $ remainingArgs)]
             Nothing -> return env
 
 -- |Take an initial null environment, make name/value pairs and bind
