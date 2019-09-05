@@ -101,8 +101,8 @@ showVal Func { params = args, vararg = varargs, body = body, closure = env} =
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map showVal
 
---unwordsVector :: LispVal -> String 
---unwordsVector (Vector y) = unwords . map showVal $ elems y
+unwordsVector :: LispVal -> String 
+unwordsVector (Vector y) = unwords . map showVal $ elems y
 
 -- |Defining the show method for LispVal
 -- See https://www.haskell.org/tutorial/classes.html 
@@ -140,7 +140,7 @@ showError (Parser parseErr) = "Parse error at " ++ show parseErr
 showError (BadSpecialForm msg form) = msg ++ ": " ++ show form
 showError (NotFunction msg func) = msg ++ ": " ++ show func
 showError (UnboundVar msg varname) = msg ++ ": " ++ varname
-showError (NumArgs expected found) = "Expected" ++ show expected
+showError (NumArgs expected found) = "Expected " ++ show expected
     ++ " args: found values " ++ unwordsList found 
 
 instance Show LispError where show = showError
