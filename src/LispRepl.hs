@@ -1,11 +1,10 @@
-module LispRepl (
-    module Evaluator,
-    module LispParser,
-    module LispRepl
-) where 
+module LispRepl where 
 
+import LispTypes
 import Evaluator
+import Environment
 import LispParser
+import Control.Monad.Except
 
 import System.IO hiding (try) -- Hiding try because of Parsec try usage
 
