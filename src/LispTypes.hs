@@ -70,6 +70,8 @@ showVal (List l) =
     "(" ++ unwordsList l ++ ")"
 showVal (DottedList hd tl) = 
     "(" ++ unwordsList hd ++ " . " ++ showVal tl ++ ")"
+showVal v@(Vector x) =
+    "#(" ++ unwordsVector v ++ ")"
 
 -- #TODO: Implement showVal for Vectors
 --showVal (Vector v) =
