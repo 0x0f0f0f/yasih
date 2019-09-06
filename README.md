@@ -2,33 +2,6 @@
 
 A small scheme interpreter written following the tutorial book ["Write Yourself a Scheme in 48 Hours"](https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours) to learn both Haskell and Scheme in detail.
 
-## Roadmap
-
-- [ ] Implement `numericBinop` for complex numbers and ratios
-- [ ] Basic Unit Test Suite
-- [ ] Standard Library (Chapter 10)
-- [ ] Fold and Unfold (Chapter 10)
-- [ ] File I/O Primitives (Chapter 9)
-- [ ] Implement the rest of string functions (Exercise 5.4)
-- [ ] Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part
-- [X] Solve circular import
-- [X] Implement `showVal` for indexed vectors
-- [X] Closures and Environments (Chapter 8)
-- [X] Mutable State (Chapter 7)
-- [x] Implement a REPL
-- [x] Implement `cond` and `case` expressions (Exercise 5.3)
-- [x] Implement `eval` for complex numbers, ratios, lists and vectors
-- [x] Monadic error handling
-- [x] Primitive Type Checking functions
-- [x] Primitive Numerical Operations
-- [x] Expression Parser
-
-## Bugs
-
-- [ ] Handle Exit code on error correctly.
-- [ ] Ignore whitespace after lists.
-- [x] ~~`equal?` does not recurse over lists. (Exercise 5.2)~~
-
 ## Installation
 
 Clone the repo
@@ -71,3 +44,31 @@ To try the examples in the `examples` directory run:
 cd examples
 rlwrap toy-scheme < example.scm
 ```
+
+## Roadmap
+
+- [ ] Implement `numericBinop` for complex numbers and ratios
+- [ ] Basic Unit Test Suite
+- [ ] Standard Library (Chapter 10)
+- [ ] Fold and Unfold (Chapter 10)
+- [ ] File I/O Primitives (Chapter 9)
+- [ ] Implement the rest of string functions (Exercise 5.4)
+- [ ] Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part
+- [ ] Parse comments
+- [X] Solve circular import
+- [X] Implement `showVal` for indexed vectors
+- [X] Closures and Environments (Chapter 8)
+- [X] Mutable State (Chapter 7)
+- [x] Implement a REPL
+- [x] Implement `cond` and `case` expressions (Exercise 5.3)
+- [x] Implement `eval` for complex numbers, ratios, lists and vectors
+- [x] Monadic error handling
+- [x] Primitive Type Checking functions
+- [x] Primitive Numerical Operations
+- [x] Expression Parser
+
+## Bugs
+
+- [ ] Handle Exit code on error correctly.
+- [X] Ignore trailing and leading whitespace in lists.
+- [x] ~~`equal?` does not recurse over lists. (Exercise 5.2)~~

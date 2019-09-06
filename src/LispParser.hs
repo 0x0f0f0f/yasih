@@ -8,6 +8,7 @@ import Data.Array
 import Data.IORef
 import Numeric
 
+import Text.Parsec.Char hiding (spaces)
 import Text.ParserCombinators.Parsec hiding (spaces)
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
@@ -148,23 +149,27 @@ parseLisp = parse parseExpr "lisp"
 
 -- |Parse an Expression (Either a String, a number or an Atom)
 parseExpr :: Parser LispVal 
-parseExpr = parseAtom
-    <|> parseString
-    <|> try parseRatio
-    <|> try parseComplex
-    <|> try parseFloat
-    <|> try parseNumber
-    <|> try parseBool
-    <|> try parseCharacter
-    <|> try parseQuoted
-    <|> try parseQuasiQuoted
-    <|> try parseUnQuote
-    <|> try parseVector
-    <|> try parseParens
+parseExpr = do 
+    skipMany $ try parseComment
+    expr <- parseAtom
+        <|> parseString
+        <|> try parseRatio
+        <|> try parseComplex
+        <|> try parseFloat
+        <|> try parseNumber
+        <|> try parseBool
+        <|> try parseCharacter
+        <|> try parseQuoted
+        <|> try parseQuasiQuoted
+        <|> try parseUnQuote
+        <|> try parseVector
+        <|> try parseParens
+    skipMany $ try parseComment
+    return expr
 
 -- |Parse a List of Atoms like a b c d
 parseList :: Parser LispVal
-parseList = sepBy parseExpr spaces >>= (return . List)
+parseList = sepEndBy parseExpr spaces >>= (return . List)
 
 -- |Parse a Dotted list (a b c . d)
 parseDottedList :: Parser LispVal
@@ -203,6 +208,7 @@ parseUnQuote = do
 parseParens :: Parser LispVal
 parseParens = do
     char '('
+    skipMany space
     x <- (try parseList) <|> parseDottedList
     char ')'
     return x
@@ -212,8 +218,13 @@ parseParens = do
 parseVector :: Parser LispVal
 parseVector = do
     string "#("
-    vals <- sepBy parseExpr spaces
+    skipMany space
+    vals <- sepEndBy parseExpr spaces
     char ')'
     return $ 
         Vector $ listArray (0, (length vals -1)) vals
 
+-- |Parse a comment like
+-- ; this is a lisp comment
+parseComment :: Parser ()
+parseComment = char ';' >> manyTill anyChar eof >> return () 
