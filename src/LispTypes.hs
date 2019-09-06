@@ -73,9 +73,6 @@ showVal (DottedList hd tl) =
 showVal v@(Vector x) =
     "#(" ++ unwordsVector v ++ ")"
 
--- #TODO: Implement showVal for Vectors
---showVal (Vector v) =
---    "#(" ++ unwordsVector v ++ ")"
 
 -- Show for primitive and general functions
 showVal (PrimitiveFunc _) = "<primitive"

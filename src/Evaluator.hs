@@ -204,6 +204,9 @@ primitives =
     ("car", car),
     ("cdr", cdr),
     ("cons", cons),
+    ("null?", isNull),
+    ("append", append),
+    ("list", listConstructor),
 
     -- Equivalence primitives
     ("eq?", eqv),
@@ -374,7 +377,7 @@ eqvList eqvFunc [List x, List y] = return $ Bool $ (length x == length y)
 car :: [LispVal] -> ThrowsError LispVal
 car [List (x:xs)] = return x
 car [DottedList (x:xs) _] = return x
-car [badArg] = throwError $ TypeMismatch "pair" badArg
+car [badArg] = throwError $ TypeMismatch "list" badArg
 car badArgList = throwError $ NumArgs 1 badArgList
 
 -- |cdr returns the tail of a list
@@ -382,15 +385,34 @@ cdr :: [LispVal] -> ThrowsError LispVal
 cdr [List (x:xs)] = return $ List xs
 cdr [DottedList (_ :xs) x] = return $ DottedList xs x
 cdr [DottedList [xs] x] = return x
-cdr [badArg] = throwError $ TypeMismatch "pair" badArg
+cdr [badArg] = throwError $ TypeMismatch "list" badArg
 cdr badArgList = throwError $ NumArgs 1 badArgList
 
 -- |cons concatenates an element to the head of a list 
 cons :: [LispVal] -> ThrowsError LispVal
 cons [x, List []] = return $ List [x]
-cons [x, List xs] = return $ List $ [x] ++ xs
+cons [x, List xs] = return $ List $ x : xs
 cons [x, DottedList xs xlast] = 
-    return $ DottedList ([x] ++ xs) xlast 
+    return $ DottedList (x : xs) xlast 
 cons [x, y] = return $ DottedList [x] y
 cons badArgList = throwError $ NumArgs 2 badArgList
 
+-- |isNull checks if a list is equal to the empty list
+isNull :: [LispVal] -> ThrowsError LispVal
+isNull [List x] = return $ if null x then Bool True else Bool False
+isNull [DottedList [xs] x] = return $ Bool False
+isNull [badArg] = throwError $ TypeMismatch "list" badArg
+isNull badArgList = throwError $ NumArgs 1 badArgList
+
+-- |append concatenates two strings
+-- (append '(a) '(b c d))      =>  (a b c d)
+append :: [LispVal] -> ThrowsError LispVal
+append [List x, List y] = return $ List $ x ++ y
+append [DottedList [xs] x, List y] = return $ List $[xs] ++ [x] ++ y
+append [List x, DottedList [ys] y] = return $ List $ [ys] ++ [y] ++ x
+append [badArg] = throwError $ TypeMismatch "list" badArg
+append badArgList = throwError $ NumArgs 2 badArgList
+
+-- |listConstructor constructs a list from a value
+listConstructor :: [LispVal] -> ThrowsError LispVal
+listConstructor argList = return $ List argList
