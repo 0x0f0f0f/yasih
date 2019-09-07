@@ -69,6 +69,6 @@ rlwrap toy-scheme < example.scm
 ## Bugs
 
 - [ ] Handle Exit code on error correctly.
-- [X] Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part
-- [X] Ignore trailing and leading whitespace in lists.
+- [X] ~~Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part~~
+- [X] ~~Ignore trailing and leading whitespace in lists.~~
 - [X] ~~`equal?` does not recurse over lists. (Exercise 5.2)~~
