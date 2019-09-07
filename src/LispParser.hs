@@ -2,6 +2,7 @@ module LispParser where
 
 import LispTypes
 
+import Control.Monad
 import Data.Ratio
 import Data.Complex
 import Data.Array
@@ -13,7 +14,7 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
 symbol :: Parser Char
-symbol = oneOf "!$%&|*+-/:<=?>@^_~"
+symbol = oneOf "!$%&|*/+-:<=?>@^_~"
 
 -- |Parser to ignore whitespace
 spaces :: Parser ()
@@ -54,6 +55,35 @@ parseString = do
     char '"'
     return $ String x
 
+-- |Parse a negative sign character and return an 
+-- Integer value to be multiplied to a parsed number
+parseIntegerSign :: Parser Integer
+parseIntegerSign = do
+    signChar <- optionMaybe $ oneOf "+-"
+    return $ case signChar of
+        Just '-' -> -1
+        Just '+' -> 1
+        _ -> 1
+
+-- |Parse a negative sign character and return an 
+-- Integer value to be multiplied to a parsed number
+parseDoubleSign :: Parser Double
+parseDoubleSign = do
+    signChar <- optionMaybe $ oneOf "+-"
+    return $ case signChar of
+        Just '-' -> -1
+        Just '+' -> 1
+        _ -> 1
+
+-- |Same as parseDoubleSign but fail if sign is not found
+parseDoubleSignStrict :: Parser Double
+parseDoubleSignStrict = do
+    signChar <- optionMaybe $ oneOf "+-"
+    case signChar of
+        Just '-' -> return $ -1
+        Just '+' -> return 1
+        _ -> fail "no sign"
+        
 
 -- |Parse a Number
 {-  
@@ -70,13 +100,16 @@ parseNumber = parseDecimal
     <|> parseHexadecimal
 
 parseDecimal :: Parser LispVal 
-parseDecimal =  many1 digit >>= (return . Number . read) 
+parseDecimal = do
+    sign <- parseIntegerSign
+    Number . (*sign) . read <$> many1 digit 
 
 parseDecimalExplBasis :: Parser LispVal
 parseDecimalExplBasis = do 
     try $ string "#d"
+    sign <- parseIntegerSign
     x <- many1 digit
-    return $ Number (read x)
+    (return . Number . (*sign) . read) x
 
 bin2dig = bin2dig' 0
 bin2dig' dig "" = dig 
@@ -86,29 +119,56 @@ bin2dig' dig (x:xs) = bin2dig' (2 * dig + (if x == '0'
 parseBinary :: Parser LispVal
 parseBinary = do 
     try $ string "#b"
+    sign <- parseIntegerSign
     x <- many1 $ oneOf "01"
-    return $ Number (bin2dig x)
+    (return . Number . (*sign) . bin2dig) x
 
-hex2dig x = fst $ readHex x !! 0 
+
 parseHexadecimal :: Parser LispVal
 parseHexadecimal = do 
     try $ string "#x"
+    sign <- parseIntegerSign
     x <- many1 hexDigit
-    return $ Number (hex2dig x)
+    (return . Number . (*sign) . fst . head . readHex) x
 
-oct2dig x = fst $ readOct x !! 0 
+oct2dig  = () 
 parseOctal :: Parser LispVal
 parseOctal = do
     try $ string "#o"
+    sign <- parseIntegerSign
     x <- many1 octDigit
-    return $ Number (oct2dig x)
+    (return . Number . (*sign) . fst . head . readOct) x
 
 parseFloat :: Parser LispVal
 parseFloat = do
-   x <- many1 digit
-   char '.'
-   y <- many1 digit
-   return $ Float $ (fst . head) $ readFloat $ x++"."++y
+    sign <- parseDoubleSign
+    x <- many1 digit
+    char '.'
+    y <- many1 digit
+    (return . Float . (*sign) . fst . head . readFloat) $ x++"."++y
+
+parseRatio :: Parser LispVal
+parseRatio = do
+    sign <- parseIntegerSign
+    x <- many1 digit
+    char '/'
+    y <- many1 digit
+    (return . Ratio) $ ((*sign) . read) x % read y
+
+-- |Convert a LispVal Float or Integer to Haskell Double
+toDouble :: LispVal -> Double
+toDouble (Float f) = realToFrac f
+toDouble (Number n) = fromIntegral n
+
+-- |Parse a Complex Number
+parseComplex :: Parser LispVal
+parseComplex = do
+    realSign <- parseDoubleSign
+    realVal <- try parseFloat <|> parseDecimal
+    imagSign <- parseDoubleSignStrict
+    imagVal <- try parseFloat <|> parseDecimal
+    char 'i'
+    (return . Complex) $ ((*realSign) . toDouble) realVal :+ ((*imagSign) . toDouble) imagVal
 
 parseCharacter :: Parser LispVal
 parseCharacter = do
@@ -121,29 +181,7 @@ parseCharacter = do
     return $ Character $ case value of
         "space" -> ' '
         "newline" -> '\n'
-        otherwise -> head value
-
-
-parseRatio :: Parser LispVal
-parseRatio = do
-    x <- many1 digit
-    char '/'
-    y <- many1 digit
-    return $ Ratio $ read x % read y
-
--- |Convert a LispVal Float or Integer to Haskell Double
-toDouble :: LispVal -> Double
-toDouble (Float f) = realToFrac f
-toDouble (Number n) = fromIntegral n
-
--- |Parse a Complex Number
-parseComplex :: Parser LispVal
-parseComplex = do
-    x <- try parseFloat <|> parseDecimal
-    char '+'
-    y <- try parseFloat <|> parseDecimal
-    char 'i'
-    return $ Complex (toDouble x :+ toDouble y)
+        _ -> head value
 
 parseLisp = parse parseExpr "lisp"
 
@@ -151,12 +189,12 @@ parseLisp = parse parseExpr "lisp"
 parseExpr :: Parser LispVal 
 parseExpr = do 
     skipMany $ try parseComment
-    expr <- parseAtom
-        <|> parseString
+    expr <- try parseComplex
         <|> try parseRatio
-        <|> try parseComplex
         <|> try parseFloat
         <|> try parseNumber
+        <|> try parseAtom
+        <|> parseString
         <|> try parseBool
         <|> try parseCharacter
         <|> try parseQuoted
@@ -169,7 +207,7 @@ parseExpr = do
 
 -- |Parse a List of Atoms like a b c d
 parseList :: Parser LispVal
-parseList = sepEndBy parseExpr spaces >>= (return . List)
+parseList = List <$> sepEndBy parseExpr spaces
 
 -- |Parse a Dotted list (a b c . d)
 parseDottedList :: Parser LispVal
@@ -209,7 +247,7 @@ parseParens :: Parser LispVal
 parseParens = do
     char '('
     skipMany space
-    x <- (try parseList) <|> parseDottedList
+    x <- try parseList <|> parseDottedList
     char ')'
     return x
 
@@ -222,7 +260,7 @@ parseVector = do
     vals <- sepEndBy parseExpr spaces
     char ')'
     return $ 
-        Vector $ listArray (0, (length vals -1)) vals
+        Vector $ listArray (0, length vals -1) vals
 
 -- |Parse a comment like
 -- ; this is a lisp comment

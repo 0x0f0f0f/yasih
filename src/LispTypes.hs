@@ -65,7 +65,7 @@ showVal (Bool False) = "#f"
 showVal (Ratio r) = 
     (show . numerator) r ++ "/" ++ (show . denominator) r
 showVal (Complex c) = 
-    (show . realPart) c ++ "+" ++ (show . imagPart) c ++ "i"
+    (show . realPart) c ++ (if imagPart c > 0 then "+" else "") ++ (show . imagPart) c ++ "i"
 showVal (List l) = 
     "(" ++ unwordsList l ++ ")"
 showVal (DottedList hd tl) = 
