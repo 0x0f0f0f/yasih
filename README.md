@@ -54,6 +54,7 @@ rlwrap toy-scheme < example.scm
 - [ ] File I/O Primitives (Chapter 9)
 - [ ] Implement the rest of string functions (Exercise 5.4)
 - [ ] Parse comments
+- [ ] Multiline parsing
 - [X] Solve circular import
 - [X] Implement `showVal` for indexed vectors
 - [X] Closures and Environments (Chapter 8)
