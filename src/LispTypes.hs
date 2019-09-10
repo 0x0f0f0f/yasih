@@ -61,7 +61,7 @@ showVal (Atom name) = name
 showVal (String s) = "\"" ++ s ++ "\""
 showVal (Number n) = show n
 showVal (Float f) = showFullPrecision f
-showVal (Character c) = show c
+showVal (Character c) = "#\\" ++ [c]
 showVal (Bool True) = "#t"
 showVal (Bool False) = "#f"
 

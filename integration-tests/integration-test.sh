@@ -23,7 +23,7 @@ trap 'printf "$0: exit code $? on line $LINENO\nFAIL: $this\n"; exit 1' ERR
 function assert {
     let tests_run+=1
     [ "$1" == "$2" ] && { echo -n "."; let tests_passed+=1; return; }
-    printf "\nFAIL: $this\n'$1' != '$2'\n"; let tests_failed+=1;
+    printf "\nFAIL: $this\ngot '$1' but expected '$2'\n"; let tests_failed+=1;
 }
 
 function t {
@@ -103,7 +103,14 @@ describe "List primitives"
 describe "Boolean Equivalence operators"
 #TODO implement test
 
+describe "String constructors"
+#TODO implement test
+
 describe "String primitives"
+t "(string-length \"helloworld\")" "10"
+t "(string-length \"\")" "0"
+
+describe "String predicates"
 t "(string-null? \"\")" "#t"
 t "(string-null? \"ciao\")" "#f"
 

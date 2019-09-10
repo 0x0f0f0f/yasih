@@ -9,6 +9,8 @@ import Control.Monad.Except
 stringPrimitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 stringPrimitives = 
     [("string", stringConstructor), -- String constructors
+    ("substring", substring),
+    ("string->list", stringToList), -- String conversion
     ("string=?", strBoolBinop (==)), -- String Comparison
     ("string<?", strBoolBinop (<)),
     ("string>?", strBoolBinop (>)),
@@ -18,7 +20,8 @@ stringPrimitives =
     ("string-ci<?", ciStrBoolBinop (<)),
     ("string-ci>?", ciStrBoolBinop (>)),
     ("string-ci<=?", ciStrBoolBinop (<=)),
-    ("string-ci>=?", ciStrBoolBinop (>=)),
+    ("string-ci>=?", ciStrBoolBinop (>=)), 
+    ("string-length", stringLength), -- String procedures
     ("string?", unaryOp stringp), -- String predicates
     ("char?", unaryOp charp),
     ("string-null?", stringNull)]
@@ -43,6 +46,28 @@ stringConstructor charl = makestr (String "") charl
 
 -- |Check if a string is empty
 stringNull :: [LispVal] -> ThrowsError LispVal
-stringNull [str@(String x)] = return $ Bool $ null x
+stringNull [String x] = return $ Bool $ null x
 stringNull [x] = throwError $ TypeMismatch "string" x 
 stringNull badArglist = throwError $ NumArgs 2 badArglist
+
+-- |Make a substring from start to end
+substring :: [LispVal] -> ThrowsError LispVal
+substring [String x, Number start, Number end] 
+    | start < 0 || start > end || start > toInteger (length x) || end > toInteger (length x) = 
+        throwError $ Default "indexes must satisfy 0 <= start <= end (string-length string)"
+    | start == end = return $ String ""
+    -- Zip indexes to string and filter out the elements not in the range (start, end)  
+    | otherwise = return $ String $ map fst $ filter (\(x, i) -> i >= start && i < end) $ zip x [0..]
+substring badArglist = throwError $ NumArgs 3 badArglist
+
+-- |Get a length of a string
+stringLength :: [LispVal] -> ThrowsError LispVal
+stringLength [String x] = return $ Number $ toInteger $ length x
+stringLength [x] = throwError $ TypeMismatch "string" x
+stringLength badArglist = throwError $ NumArgs 1 badArglist
+
+-- |Convert a String to a List of characters
+stringToList :: [LispVal] -> ThrowsError LispVal
+stringToList [String x] = return $ List $ map (Character) x
+stringToList [x] = throwError $ TypeMismatch "string" x
+stringToList badArglist = throwError $ NumArgs 1 badArglist
