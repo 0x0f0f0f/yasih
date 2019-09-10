@@ -3,6 +3,7 @@ module Evaluator where
 
 import LispTypes
 import Environment
+import Evaluator.Numerical
 
 import Data.IORef
 import Data.Maybe
@@ -157,17 +158,8 @@ primitiveBindings = nullEnv >>= (flip bindVars $ map makePrimitiveFunc primitive
 -- |Primitive functions table
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 primitives = 
-    -- Binary Numerical operations
-    [("+", numericBinop (+)), 
-    ("-", numericBinop (-)),
-    ("*", numericBinop (*)),
-    ("/", numericBinop div),
-    ("mod", numericBinop mod),
-    ("quotient", numericBinop quot),
-    ("remainder", numericBinop rem),
-    
     -- Type testing functions
-    ("symbol?", unaryOp symbolp), 
+    [("symbol?", unaryOp symbolp), 
     ("number?", unaryOp numberp),
     ("float?", unaryOp floatp),
     ("string?", unaryOp stringp),
@@ -250,15 +242,6 @@ symboltostring _ = String ""
 stringtosymbol (String s) = Atom s
 stringtosymbol _ = Atom ""
 
--- |Unpack numbers from LispValues
-unpackNum :: LispVal -> ThrowsError Integer
-unpackNum (Number n) = return n
-unpackNum (String n) = let parsed = reads n in
-    if null parsed then throwError $ TypeMismatch "number" $ String n
-    else return $ fst $ head parsed
-unpackNum (List [n]) = unpackNum n
-unpackNum notNum = throwError $ TypeMismatch "number" notNum
-
 -- |Unpack strings from LispVal
 unpackStr :: LispVal -> ThrowsError String
 unpackStr (String s) = return s
@@ -270,18 +253,6 @@ unpackStr notString = throwError $ TypeMismatch "string" notString
 unpackBool :: LispVal -> ThrowsError Bool 
 unpackBool (Bool b) = return b 
 unpackBool notBool = throwError $ TypeMismatch "boolean" notBool
-
--- #TODO extend numericBinop to allow numeric operations on complex
--- numbers and ratios
-
--- |Take a primitive Haskell Integer function and wrap it
--- with code to unpack an argument list, apply the function to it
--- and return a numeric value
-numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError LispVal
--- Throw an error if there's only one argument
-numericBinop op val@[_] = throwError $ NumArgs 2 val
--- Fold the operator leftway if there are enough args
-numericBinop op params = mapM unpackNum params >>= return . Number . foldl1 op 
     
 -- |Apply an operator to two arguments and return a Bool
 -- boolBinop unpacker operator arguments
@@ -397,6 +368,7 @@ cons [x, DottedList xs xlast] =
 cons [x, y] = return $ DottedList [x] y
 cons badArgList = throwError $ NumArgs 2 badArgList
 
+-- #TODO move to stdlib
 -- |isNull checks if a list is equal to the empty list
 isNull :: [LispVal] -> ThrowsError LispVal
 isNull [List x] = return $ if null x then Bool True else Bool False
@@ -404,6 +376,7 @@ isNull [DottedList [xs] x] = return $ Bool False
 isNull [badArg] = throwError $ TypeMismatch "list" badArg
 isNull badArgList = throwError $ NumArgs 1 badArgList
 
+-- #TODO move to stdlib
 -- |append concatenates two strings
 -- (append '(a) '(b c d))      =>  (a b c d)
 append :: [LispVal] -> ThrowsError LispVal
@@ -413,6 +386,7 @@ append [List x, DottedList [ys] y] = return $ List $ [ys] ++ [y] ++ x
 append [badArg] = throwError $ TypeMismatch "list" badArg
 append badArgList = throwError $ NumArgs 2 badArgList
 
+-- #TODO move to stdlib
 -- |listConstructor constructs a list from a value
 listConstructor :: [LispVal] -> ThrowsError LispVal
 listConstructor argList = return $ List argList
