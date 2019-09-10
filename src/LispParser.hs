@@ -34,7 +34,7 @@ parseBool = do
 
 
 -- Exercise 2.2 and 2.3
--- Parse escaped characters in strings
+-- Parse escaped Chars in strings
 parseEscapedChars :: Parser Char
 parseEscapedChars = do
     char '\\'
@@ -55,7 +55,7 @@ parseString = do
     char '"'
     return $ String x
 
--- |Parse a negative sign character and return an 
+-- |Parse a negative sign Char and return an 
 -- Integer value to be multiplied to a parsed number
 parseIntegerSign :: Parser Integer
 parseIntegerSign = do
@@ -65,7 +65,7 @@ parseIntegerSign = do
         Just '+' -> 1
         _ -> 1
 
--- |Parse a negative sign character and return an 
+-- |Parse a negative sign Char and return an 
 -- Integer value to be multiplied to a parsed number
 parseDoubleSign :: Parser Double
 parseDoubleSign = do

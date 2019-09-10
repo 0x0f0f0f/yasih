@@ -4,6 +4,7 @@ module Evaluator.Numerical where
 
 import LispTypes
 import Environment
+import Evaluator.Operators
 
 import Data.Complex
 import Data.Ratio
@@ -20,16 +21,30 @@ numericalPrimitives =
     ("/", numDivide),
     ("modulo", numericBinop mod),
     ("quotient", numericBinop quot),
-    ("remainder", numericBinop rem)]
+    ("remainder", numericBinop rem),
+    -- Numerical Boolean operators
+    ("=", numBoolBinop (==)),
+    ("<", numBoolBinop (<)),
+    (">", numBoolBinop (>)),
+    ("/=", numBoolBinop (/=)),
+    (">=", numBoolBinop (>=)),
+    ("<=", numBoolBinop (<=)),
+    -- Type testing functions
+    ("number?", unaryOp numberp),
+    ("float?", unaryOp floatp),
+    ("ratio?", unaryOp ratiop),
+    ("complex?", unaryOp complexp)]
 
--- |Unpack numbers from LispValues
-unpackNum :: LispVal -> ThrowsError Integer
-unpackNum (Number n) = return n
-unpackNum (String n) = let parsed = reads n in
-    if null parsed then throwError $ TypeMismatch "number" $ String n
-    else return $ fst $ head parsed
-unpackNum (List [n]) = unpackNum n
-unpackNum notNum = throwError $ TypeMismatch "number" notNum
+-- |Type testing functions
+numberp, floatp, ratiop, complexp :: LispVal -> LispVal
+numberp (Number _)      = Bool True
+numberp _               = Bool False
+floatp (Float _)        = Bool True
+floatp _                = Bool False
+ratiop (Ratio _)        = Bool True
+ratiop _                = Bool False
+complexp (Complex _)    = Bool True
+complexp _              = Bool False
 
 -- |foldl1M is like foldlM but has no base case
 foldl1M :: Monad m => (a -> a -> m a) -> [a] -> m a 
