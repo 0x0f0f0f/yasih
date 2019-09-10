@@ -104,7 +104,7 @@ describe "Boolean Equivalence operators"
 #TODO implement test
 
 describe "String primitives"
-#TODO implement test
-
+t "(string-null? \"\")" "#t"
+t "(string-null? \"ciao\")" "#f"
 
 printf "\n\n$tests_run tests run\n$tests_passed PASSED\n$tests_failed FAILED\n"

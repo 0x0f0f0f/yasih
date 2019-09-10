@@ -10,11 +10,18 @@ stringPrimitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 stringPrimitives = 
     [("string", stringConstructor), -- String constructors
     ("string=?", strBoolBinop (==)), -- String Comparison
-    ("string?", strBoolBinop (>)),
+    ("string<?", strBoolBinop (<)),
+    ("string>?", strBoolBinop (>)),
     ("string<=?", strBoolBinop (<=)),
     ("string>=?", strBoolBinop (>=)),
+    ("string-ci=?", ciStrBoolBinop (==)),
+    ("string-ci<?", ciStrBoolBinop (<)),
+    ("string-ci>?", ciStrBoolBinop (>)),
+    ("string-ci<=?", ciStrBoolBinop (<=)),
+    ("string-ci>=?", ciStrBoolBinop (>=)),
     ("string?", unaryOp stringp), -- String predicates
-    ("char?", unaryOp charp)]
+    ("char?", unaryOp charp),
+    ("string-null?", stringNull)]
 
 -- |Type testing functions
 stringp, charp :: LispVal -> LispVal
@@ -33,3 +40,9 @@ stringConstructor charl = makestr (String "") charl
         makestr (String str) (Character x : xs) = makestr (String (str ++ [x])) xs
         makestr str@(String _) [] = return str 
         makestr str (x : xs) = throwError $ TypeMismatch "char" x
+
+-- |Check if a string is empty
+stringNull :: [LispVal] -> ThrowsError LispVal
+stringNull [str@(String x)] = return $ Bool $ null x
+stringNull [x] = throwError $ TypeMismatch "string" x 
+stringNull badArglist = throwError $ NumArgs 2 badArglist

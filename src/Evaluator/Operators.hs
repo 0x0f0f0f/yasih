@@ -2,6 +2,7 @@
 module Evaluator.Operators where 
 
 import LispTypes
+import Data.Char (toLower)
 import Control.Monad.Except
 
 -- |Apply an unary operator 
@@ -24,6 +25,7 @@ boolBinop unpacker op args = if length args /= 2
 -- | Type specific boolean operators
 numBoolBinop = boolBinop unpackNum
 strBoolBinop = boolBinop unpackStr
+ciStrBoolBinop = boolBinop unpackCiStr
 boolBoolBinop = boolBinop unpackBool
 
 -- |Data type that can hold any function to a LispVal into a native type
@@ -47,8 +49,22 @@ unpackNum notNum = throwError $ TypeMismatch "number" notNum
 unpackStr :: LispVal -> ThrowsError String
 unpackStr (String s) = return s
 unpackStr (Number s) = return $ show s 
+unpackStr (Float s) = return $ show s 
+unpackStr (Ratio s) = return $ show s
+unpackStr (Complex s) = return $ show s 
 unpackStr (Bool s ) = return $ show s
 unpackStr notString = throwError $ TypeMismatch "string" notString
+
+-- |Unpack strings from LispVal, case insensitive
+unpackCiStr :: LispVal -> ThrowsError String
+unpackCiStr (String s) = return $ map toLower s
+unpackCiStr (Number s) = return $ show s
+unpackCiStr (Float s) = return $ show s 
+unpackCiStr (Ratio s) = return $ show s
+unpackCiStr (Complex s) = return $ show s 
+unpackCiStr (Bool s) = return $ show s
+unpackCiStr notString = throwError $ TypeMismatch "string" notString
+
 
 -- |Helper function that takes an Unpacker and determines if two LispVals
 -- are equal before unpacking them
