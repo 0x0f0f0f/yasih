@@ -152,12 +152,13 @@ apply (Func params varargs body closure) args =
 -- |Take an initial null environment, make name/value pairs and bind
 -- primitives into the new environment
 primitiveBindings :: IO Env 
-primitiveBindings = nullEnv >>= (flip bindVars $ map makePrimitiveFunc primitives)
+primitiveBindings = nullEnv >>= flip bindVars (map makePrimitiveFunc primitives)
     where makePrimitiveFunc (var, func) = (var, PrimitiveFunc func)
 
 -- |Primitive functions table
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 primitives = 
+    numericalPrimitives ++
     -- Type testing functions
     [("symbol?", unaryOp symbolp), 
     ("number?", unaryOp numberp),

@@ -5,6 +5,7 @@ import Data.Complex
 import Data.Array
 import Data.IORef
 
+import Numeric
 import Text.ParserCombinators.Parsec.Error
 import Control.Monad.Except
 
@@ -46,17 +47,20 @@ instance Eq LispVal where
     (==) l1@(List x) l2@(List y) = 
         (length x == length y) && all (uncurry (==)) (zip x y)
 
+-- |Helper function to show a Double in full precision
+showFullPrecision :: Double -> String
+showFullPrecision x = showFFloat Nothing x ""
+
 -- |Print the content of a LispVal
 -- Pattern matching is used to destructure
 -- The algebraic data type selecting a clause
 -- Based on constructors
 showVal :: LispVal -> String
-
 -- Simple Types
 showVal (Atom name) = name
 showVal (String s) = "\"" ++ s ++ "\""
 showVal (Number n) = show n
-showVal (Float f) = show f
+showVal (Float f) = showFullPrecision f
 showVal (Character c) = show c
 showVal (Bool True) = "#t"
 showVal (Bool False) = "#f"
@@ -64,14 +68,12 @@ showVal (Bool False) = "#f"
 -- Composite types
 showVal (Ratio r) = 
     (show . numerator) r ++ "/" ++ (show . denominator) r
-showVal (Complex c) = 
-    (show . realPart) c ++ (if imagPart c > 0 then "+" else "") ++ (show . imagPart) c ++ "i"
-showVal (List l) = 
-    "(" ++ unwordsList l ++ ")"
-showVal (DottedList hd tl) = 
-    "(" ++ unwordsList hd ++ " . " ++ showVal tl ++ ")"
-showVal v@(Vector x) =
-    "#(" ++ unwordsVector v ++ ")"
+showVal (Complex c) = (showFullPrecision. realPart) c 
+    ++ (if imagPart c > 0 then "+" else "")
+    ++ (showFullPrecision . imagPart) c ++ "i"
+showVal (List l) = "(" ++ unwordsList l ++ ")"
+showVal (DottedList hd tl) = "(" ++ unwordsList hd ++ " . " ++ showVal tl ++ ")"
+showVal v@(Vector x) = "#(" ++ unwordsVector v ++ ")"
 
 
 -- Show for primitive and general functions
@@ -123,6 +125,7 @@ instance Show LispVal where show = showVal
 -}
 
 data LispError = NumArgs Integer [LispVal]
+    | DivideByZero
     | TypeMismatch String LispVal
     | Parser ParseError
     | BadSpecialForm String LispVal 
@@ -133,6 +136,7 @@ data LispError = NumArgs Integer [LispVal]
 -- Make LispError an instance of Show
 showError :: LispError -> String
 showError (Default msg) = show msg
+showError DivideByZero = show "Division by zero!"
 showError (TypeMismatch expected found) = "Invalid type: expected "    
     ++ expected ++ ", found " ++ show found 
 showError (Parser parseErr) = "Parse error at " ++ show parseErr
