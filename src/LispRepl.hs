@@ -8,14 +8,6 @@ import Control.Monad.Except
 
 import System.IO hiding (try) -- Hiding try because of Parsec try usage
 
--- |Parse an expression
--- readExpr input
--- Parse and evaluate a LispVal returning a monadic value
-readExpr :: String -> ThrowsError LispVal 
-readExpr input = case parseLisp input of
-    Left err -> throwError $ Parser err
-    Right val -> return val
-
 -- |Prints out a string and immediately flush the stream.
 flushStr :: String -> IO ()
 flushStr str = putStr str >> hFlush stdout
@@ -46,9 +38,20 @@ until_ pred prompt action = do
         -- Else run action then recurse-loop
         else action result >> until_ pred prompt action 
 
--- |Eval an expression initializing a null environment
-runOne :: String -> IO ()
-runOne expr = primitiveBindings >>= flip evalAndPrint expr
+-- |Evaluate a single expression
+runOneExpr :: String -> IO ()
+runOneExpr expr = primitiveBindings >>= flip evalAndPrint expr
+
+-- |Takes a filename, loads it and executes it as a program
+-- Additional arguments will get bound into a list args within the Scheme program
+runProgram :: [String] -> IO ()
+runProgram args = do
+    -- Take the primitive bindings, bind them in an environment and add a variable args
+    -- containing the list of arguments except the program filename
+    env <- primitiveBindings >>= flip bindVars [("args", List $ map String $ drop 1 args)]
+    -- evaluate a scheme form loading the program and print out errors on stderr
+    (runIOThrows $ liftM show $ eval env (List [Atom "load", String (head args)]))
+        >>= hPutStrLn stderr
 
 -- |REPL
 runRepl :: IO ()

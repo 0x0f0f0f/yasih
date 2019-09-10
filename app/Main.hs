@@ -1,10 +1,11 @@
 module Main where
 
---import Control.Monad
+import LispRepl
+
+import System.IO
 import System.Environment
 import Numeric
 
-import LispRepl
 
 
 -- |Parse and eval the first argument
@@ -12,9 +13,10 @@ import LispRepl
 main :: IO ()
 main = do
     args <- getArgs 
-    case length args of 
-        0 -> runRepl -- No argument is passed => run the REPL
-        1 -> runOne $ head args
+    case args of 
+        [] -> runRepl -- No argument is passed => run the REPL
+        [filename] -> runProgram $ args
+        ["-e", expr] -> runOneExpr expr
         _ -> do
-            putStrLn "Usage: haskell-toy-scheme [EXPR]"
-            putStrLn "If EXPR is provided evaluate it. Otherwise run the REPL."
+            hPutStrLn stderr "Usage: haskell-toy-scheme [EXPR]"
+            hPutStrLn stderr "If EXPR is provided evaluate it. Otherwise run the REPL."

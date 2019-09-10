@@ -8,6 +8,7 @@ import Data.IORef
 import Numeric
 import Text.ParserCombinators.Parsec.Error
 import Control.Monad.Except
+import System.IO 
 
 -- Env is a stateful variable (IORef) that holds a map of strings -> IORef LispVal
 type Env = IORef[(String, IORef LispVal)]
@@ -33,6 +34,8 @@ data LispVal = Atom String -- Simple Types
         body :: [LispVal], -- list of expressions
         closure :: Env -- the environment where the function was created
         }
+    | IOFunc ([LispVal] -> IOThrowsError LispVal) -- A dirty function that performs IO
+    | Port Handle -- Represents input and output devices
 
 -- Defining Equality methods for LispVal
 instance Eq LispVal where
@@ -76,14 +79,15 @@ showVal (DottedList hd tl) = "(" ++ unwordsList hd ++ " . " ++ showVal tl ++ ")"
 showVal v@(Vector x) = "#(" ++ unwordsVector v ++ ")"
 
 
--- Show for primitive and general functions
-showVal (PrimitiveFunc _) = "<primitive"
+-- Show for functions and ports
+showVal (PrimitiveFunc _) = "<primitive>"
 showVal Func { params = args, vararg = varargs, body = body, closure = env} =
     "(lambda (" ++ unwords (map show args) ++ 
     (case varargs of 
         Nothing -> ""
         Just arg -> " . " ++ arg) ++ ") ...)"
-
+showVal (IOFunc _) = "<IO primitive>"
+showVal (Port _) = "<IO port>"
 -- |Helper function mapping showVal over a Lisp List
 -- |Basically unwords for LispVal
 

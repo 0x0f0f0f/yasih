@@ -3,14 +3,32 @@ module LispParser where
 import LispTypes
 
 import Control.Monad
+import Control.Monad.Except
 import Data.Ratio
 import Data.Complex
 import Data.Array
 import Data.IORef
 import Numeric
 
+
 import Text.Parsec.Char hiding (spaces)
 import Text.ParserCombinators.Parsec hiding (spaces)
+
+-- |Parse an expression
+-- Parse and evaluate a LispVal returning a monadic value
+readOrThrow :: Parser a -> String -> ThrowsError a
+readOrThrow parser input = case parse parser "lisp" input of 
+    Left err -> throwError $ Parser err
+    Right val -> return val
+
+-- |Parse a single expression
+readExpr :: String -> ThrowsError LispVal 
+readExpr = readOrThrow parseExpr
+
+-- |Parse multiple expressions
+readExprList :: String -> ThrowsError [LispVal] 
+readExprList = readOrThrow (endBy parseExpr spaces)
+    
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
 symbol :: Parser Char
@@ -182,8 +200,6 @@ parseCharacter = do
         "space" -> ' '
         "newline" -> '\n'
         _ -> head value
-
-parseLisp = parse parseExpr "lisp"
 
 -- |Parse an Expression (Either a String, a number or an Atom)
 parseExpr :: Parser LispVal 

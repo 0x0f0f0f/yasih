@@ -49,11 +49,11 @@ rlwrap toy-scheme < example.scm
 
 - [ ] Basic Unit Test Suite
 - [ ] Standard Library (Chapter 10)
-- [ ] Fold and Unfold (Chapter 10)
-- [ ] File I/O Primitives (Chapter 9)
-- [ ] Implement the rest of string functions (Exercise 5.4)
 - [ ] Parse comments
-- [ ] Multiline parsing
+- [ ] Multi line parsing
+- [ ] Add more primitives from [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
+- [X] File I/O Primitives (Chapter 9)
+- [X] Implement the rest of string functions (Exercise 5.4)
 - [X] Implement numerical operators for the whole numerical tower
 - [X] Solve circular import
 - [X] Implement `showVal` for indexed vectors

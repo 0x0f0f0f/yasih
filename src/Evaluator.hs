@@ -1,6 +1,7 @@
 module Evaluator where
 
 import LispTypes
+import LispParser
 import Environment
 import Evaluator.Operators
 import Evaluator.Numerical
@@ -13,6 +14,8 @@ import Evaluator.Equivalence
 import Data.IORef
 import Data.Maybe
 import Control.Monad.Except
+import System.IO hiding (try)
+
 
 -- |Evaluate expressions. Returns a monadic IOThrowsError value
 -- In Lisp, data types for both code and data are the same
@@ -35,6 +38,13 @@ eval env (List [Atom "quote", val]) = return val
 
 -- Get a variable
 eval env (Atom id) = getVar env id
+
+-- | load a file and evaluate its contents. A special form
+-- is used because apply does not accept an env binding but 
+-- statements in the loaded file can affect the top level environment
+eval env (List [Atom "load", String filename]) = 
+    loadHelper filename >>= liftM last . mapM (eval env)
+
 
 -- Set a variable
 eval env (List [Atom "set!", Atom var, form]) =
@@ -116,7 +126,6 @@ eval env form@(List (Atom "case" : (key : clauses))) = if null clauses
                 else eval env $ List (Atom "case" : key : tail clauses)
         _ -> throwError $ BadSpecialForm "Ill-formed clause in case expression" form
 
-
 -- Function application clause
 -- Run eval recursively over args then apply func over the resulting list
 eval env (List (function : args)) = do
@@ -133,6 +142,7 @@ eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badFo
 -- the corresponding function if found, otherwise throw an error
 apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
 apply (PrimitiveFunc func) args = liftThrows $ func args 
+apply (IOFunc func) args = func args 
 apply (Func params varargs body closure) args = 
     -- Throw error if argument number is wrong
     if num params /= num args && isNothing varargs 
@@ -157,8 +167,8 @@ apply (Func params varargs body closure) args =
 -- |Take an initial null environment, make name/value pairs and bind
 -- primitives into the new environment
 primitiveBindings :: IO Env 
-primitiveBindings = nullEnv >>= flip bindVars (map makePrimitiveFunc primitives)
-    where makePrimitiveFunc (var, func) = (var, PrimitiveFunc func)
+primitiveBindings = nullEnv >>= (flip bindVars $ map (makeFunc IOFunc) ioPrimitives ++ map (makeFunc PrimitiveFunc) primitives)
+    where makeFunc constructor (var, func) = (var, constructor func)
 
 -- |Primitive functions table
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
@@ -169,3 +179,59 @@ primitives =
     symbolPrimitives ++
     listPrimitives ++
     equivalencePrimitives
+
+
+ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
+ioPrimitives = 
+    [("apply", applyProc),
+    ("open-input-file", makePort ReadMode),
+    ("open-output-file", makePort WriteMode),
+    ("close-input-port", closePort),
+    ("close-output-port", closePort),
+    ("read", readProc),
+    ("write", writeProc),
+    ("read-contents", readContents),
+    ("read-all", readAll)]
+
+-- | Wrapper around apply responsible for destructuring the argument list
+-- into the form apply expects
+applyProc :: [LispVal] -> IOThrowsError LispVal
+applyProc [func, List args] = apply func args
+applyProc (func : args) = apply func args
+
+-- | Wraps openFile wrapping its return value into a Port.
+makePort :: IOMode -> [LispVal] -> IOThrowsError LispVal
+makePort mode [String filename] = liftM Port $ liftIO $ openFile filename mode
+
+-- | Wraps hClose wrapping its return value into a Port.
+closePort :: [LispVal] -> IOThrowsError LispVal
+closePort [Port port] = liftIO $ hClose port >> (return $ Bool True)
+closePort _ = return $ Bool False
+
+-- | readProc wraps the built in hGetLine and sends the ressult to parseExpr
+
+-- hGetLine is of type IO String but readExpr is of type String -> ThrowsError LispVal
+-- So they both need to be converted (with liftIO and liftThrows) to the IOThrowsError monad
+-- Only then they can be piped together by the monadic operator bind (>>=)
+readProc :: [LispVal] -> IOThrowsError LispVal
+readProc [] = readProc [Port stdin]
+readProc [Port port] = (liftIO $ hGetLine port) >>= liftThrows . readExpr
+readProc [x] = throwError $ TypeMismatch "port" x
+
+-- | writeProc converts a LispVal to a string and writes it to the specified port
+-- show is called automatically since hPrint accepts a class instance of Show a
+writeProc :: [LispVal] -> IOThrowsError LispVal
+writeProc [obj] = writeProc [obj, Port stdout]
+writeProc [obj, Port port] = liftIO $ hPrint port obj >> (return $ Bool True)
+
+-- | Reads the whole file into a string in memory. Thin wrapper around readFile
+readContents :: [LispVal] -> IOThrowsError LispVal
+readContents [String filename] = liftM String $ liftIO $ readFile filename
+
+-- | Read and parse a file full of Lisp statements and return a list
+loadHelper :: String -> IOThrowsError [LispVal]
+loadHelper filename = (liftIO $ readFile filename) >>= liftThrows . readExprList
+
+-- | Wraps loadHelper returned list into a LispVal List constructor
+readAll :: [LispVal] -> IOThrowsError LispVal
+readAll [String filename] = liftM List $ loadHelper filename
