@@ -47,7 +47,6 @@ rlwrap toy-scheme < example.scm
 
 ## Roadmap
 
-- [ ] Implement `numericBinop` for complex numbers and ratios
 - [ ] Basic Unit Test Suite
 - [ ] Standard Library (Chapter 10)
 - [ ] Fold and Unfold (Chapter 10)
@@ -55,6 +54,7 @@ rlwrap toy-scheme < example.scm
 - [ ] Implement the rest of string functions (Exercise 5.4)
 - [ ] Parse comments
 - [ ] Multiline parsing
+- [X] Implement numerical operators for the whole numerical tower
 - [X] Solve circular import
 - [X] Implement `showVal` for indexed vectors
 - [X] Closures and Environments (Chapter 8)
