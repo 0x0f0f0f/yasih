@@ -53,11 +53,11 @@ rlwrap toy-scheme file.scm
 ## Roadmap
 
 - [ ] Basic Unit Test Suite
-- [ ] Parse comments
 - [ ] Multi line parsing
 - [ ] Standard Library (Chapter 10)
 - [ ] Add more primitives from [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
-- [ ] Add let statement
+- [ ] let statement
+- [X] Parse comments
 - [X] Import path and autoload stdlib
 - [X] File I/O Primitives (Chapter 9)
 - [X] Implement the rest of string functions (Exercise 5.4)
