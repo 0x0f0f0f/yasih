@@ -9,6 +9,8 @@ copyright:           "2019 Author name here"
 extra-source-files:
 - README.md
 - ChangeLog.md
+- scm-lib
+- examples
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -24,6 +26,7 @@ dependencies:
 - parsec 
 - array
 - mtl >= 2.2.2
+- directory
 
 library:
   source-dirs: src

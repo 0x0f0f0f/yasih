@@ -15,6 +15,7 @@ import Data.IORef
 import Data.Maybe
 import Control.Monad.Except
 import System.IO hiding (try)
+import System.Directory 
 
 
 -- |Evaluate expressions. Returns a monadic IOThrowsError value
@@ -161,13 +162,13 @@ apply (Func params varargs body closure) args =
         evalBody env = liftM last $ mapM (eval env) body
         -- Bind variable argument list to env if present
         bindVarArgs arg env = case arg of
-            Just argName -> liftIO $ bindVars env [(argName, List $ remainingArgs)]
+            Just argName -> liftIO $ bindVars env [(argName, List remainingArgs)]
             Nothing -> return env
 
 -- |Take an initial null environment, make name/value pairs and bind
 -- primitives into the new environment
 primitiveBindings :: IO Env 
-primitiveBindings = nullEnv >>= (flip bindVars $ map (makeFunc IOFunc) ioPrimitives ++ map (makeFunc PrimitiveFunc) primitives)
+primitiveBindings = nullEnv >>= flip bindVars (map (makeFunc IOFunc) ioPrimitives ++ map (makeFunc PrimitiveFunc) primitives)
     where makeFunc constructor (var, func) = (var, constructor func)
 
 -- |Primitive functions table
@@ -205,7 +206,7 @@ makePort mode [String filename] = liftM Port $ liftIO $ openFile filename mode
 
 -- | Wraps hClose wrapping its return value into a Port.
 closePort :: [LispVal] -> IOThrowsError LispVal
-closePort [Port port] = liftIO $ hClose port >> (return $ Bool True)
+closePort [Port port] = liftIO $ hClose port >> return (Bool True)
 closePort _ = return $ Bool False
 
 -- | readProc wraps the built in hGetLine and sends the ressult to parseExpr
@@ -215,14 +216,14 @@ closePort _ = return $ Bool False
 -- Only then they can be piped together by the monadic operator bind (>>=)
 readProc :: [LispVal] -> IOThrowsError LispVal
 readProc [] = readProc [Port stdin]
-readProc [Port port] = (liftIO $ hGetLine port) >>= liftThrows . readExpr
+readProc [Port port] = liftIO (hGetLine port) >>= liftThrows . readExpr
 readProc [x] = throwError $ TypeMismatch "port" x
 
 -- | writeProc converts a LispVal to a string and writes it to the specified port
 -- show is called automatically since hPrint accepts a class instance of Show a
 writeProc :: [LispVal] -> IOThrowsError LispVal
 writeProc [obj] = writeProc [obj, Port stdout]
-writeProc [obj, Port port] = liftIO $ hPrint port obj >> (return $ Bool True)
+writeProc [obj, Port port] = liftIO $ hPrint port obj >> return (Bool True)
 
 -- | Reads the whole file into a string in memory. Thin wrapper around readFile
 readContents :: [LispVal] -> IOThrowsError LispVal
@@ -230,7 +231,11 @@ readContents [String filename] = liftM String $ liftIO $ readFile filename
 
 -- | Read and parse a file full of Lisp statements and return a list
 loadHelper :: String -> IOThrowsError [LispVal]
-loadHelper filename = (liftIO $ readFile filename) >>= liftThrows . readExprList
+loadHelper filename = do 
+    isexists <- liftIO $ doesFileExist filename 
+    if isexists then 
+        liftIO (readFile filename) >>= liftThrows . readExprList
+    else throwError $ Default $ "Could not load file " ++ filename
 
 -- | Wraps loadHelper returned list into a LispVal List constructor
 readAll :: [LispVal] -> IOThrowsError LispVal

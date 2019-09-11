@@ -42,7 +42,7 @@ To try the examples in the `examples` directory run:
 
 ```
 cd examples
-rlwrap toy-scheme < example.scm
+rlwrap toy-scheme file.scm
 ```
 
 ## Roadmap
@@ -50,9 +50,10 @@ rlwrap toy-scheme < example.scm
 - [ ] Basic Unit Test Suite
 - [ ] Parse comments
 - [ ] Multi line parsing
-- [ ] Import path and autoload stdlib
 - [ ] Standard Library (Chapter 10)
 - [ ] Add more primitives from [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
+- [ ] Add let statement
+- [X] Import path and autoload stdlib
 - [X] File I/O Primitives (Chapter 9)
 - [X] Implement the rest of string functions (Exercise 5.4)
 - [X] Implement numerical operators for the whole numerical tower
