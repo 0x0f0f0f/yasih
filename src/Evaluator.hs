@@ -74,7 +74,7 @@ eval env (List (Atom "lambda" : List params : body)) =
 eval env (List (Atom "lambda" : DottedList params varargs: body)) =
     makeVarargs varargs env params body
 
--- (lambda (a b c . d) body)
+-- (lambda args body)
 eval env (List (Atom "lambda" : varargs@(Atom _) : body)) =
     makeVarargs varargs env [] body
 
@@ -197,6 +197,7 @@ ioPrimitives =
 -- into the form apply expects
 applyProc :: [LispVal] -> IOThrowsError LispVal
 applyProc [func, List args] = apply func args
+applyProc [func, DottedList [args] rest] = applyProc [func, List ([args] ++ [rest]) ]
 applyProc (func : args) = apply func args
 
 -- | Wraps openFile wrapping its return value into a Port.

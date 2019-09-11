@@ -55,7 +55,7 @@ cons badArgList = throwError $ NumArgs 2 badArgList
 -- (append '(a) '(b c d))      =>  (a b c d)
 append :: [LispVal] -> ThrowsError LispVal
 append [List x, List y] = return $ List $ x ++ y
-append [DottedList [xs] x, List y] = return $ List $[xs] ++ [x] ++ y
+append [DottedList [xs] x, List y] = return $ List $ [xs] ++ [x] ++ y
 append [List x, DottedList [ys] y] = return $ List $ [ys] ++ [y] ++ x
 append [badArg] = throwError $ TypeMismatch "list" badArg
 append badArgList = throwError $ NumArgs 2 badArgList
