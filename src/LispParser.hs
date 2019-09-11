@@ -23,16 +23,25 @@ readOrThrow parser input = case parse parser "lisp" input of
 
 -- |Parse a single expression
 readExpr :: String -> ThrowsError LispVal 
-readExpr = readOrThrow parseExpr
+readExpr = readOrThrow mainParser
 
 -- |Parse multiple expressions
 readExprList :: String -> ThrowsError [LispVal] 
-readExprList = readOrThrow (endBy parseExpr spaces)
+readExprList = readOrThrow (endBy mainParser whitespace)
     
+-- | Discard leading whitespace
+mainParser :: Parser LispVal
+mainParser = do 
+    skipMany whitespace
+    skipMany parseComment
+    parseExpr
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
 symbol :: Parser Char
 symbol = oneOf "!$%&|*/+-:<=?>@^_~"
+
+whitespace :: Parser ()
+whitespace = skipMany1 (space <|> tab)
 
 -- |Parser to ignore whitespace
 spaces :: Parser ()
@@ -204,7 +213,6 @@ parseCharacter = do
 -- |Parse an Expression (Either a String, a number or an Atom)
 parseExpr :: Parser LispVal 
 parseExpr = do 
-    skipMany $ try parseComment
     expr <- try parseComplex
         <|> try parseRatio
         <|> try parseFloat
@@ -218,7 +226,7 @@ parseExpr = do
         <|> try parseUnQuote
         <|> try parseVector
         <|> try parseParens
-    skipMany $ try parseComment
+    skipMany parseComment
     return expr
 
 -- |Parse a List of Atoms like a b c d
@@ -233,6 +241,7 @@ parseDottedList = do
     head <- endBy parseExpr spaces  
     -- Then parse the remaining Expr after the dot
     tail <- char '.' >> spaces >> parseExpr
+    skipMany spaces
     return $ DottedList head tail
 
 -- |Parse a Quoted Expression 'a
@@ -263,7 +272,7 @@ parseParens :: Parser LispVal
 parseParens = do
     char '('
     skipMany space
-    x <- try parseList <|> parseDottedList
+    x <- try parseDottedList <|> try parseList 
     char ')'
     return x
 
@@ -281,4 +290,4 @@ parseVector = do
 -- |Parse a comment like
 -- ; this is a lisp comment
 parseComment :: Parser ()
-parseComment = char ';' >> manyTill anyChar eof >> return () 
+parseComment = char ';' >> manyTill anyChar newline >> skipMany space >> return () 

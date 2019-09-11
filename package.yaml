@@ -9,8 +9,7 @@ copyright:           "2019 Author name here"
 extra-source-files:
 - README.md
 - ChangeLog.md
-- scm-lib
-- examples
+- stdlib/stdlib.scm
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package

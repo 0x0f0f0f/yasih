@@ -30,6 +30,8 @@ main = do
     -- filter out existing paths
     epaths <- filterM doesDirectoryExist ipaths 
 
+    mapM_ putStrLn epaths
+
     args <- getArgs 
     case args of 
         [] -> runRepl epaths -- No argument is passed => run the REPL

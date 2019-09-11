@@ -9,6 +9,7 @@ import Evaluator.Operators
 import Data.Complex
 import Data.Ratio
 import Data.Foldable
+import Data.Fixed 
 import Numeric
 import Control.Monad.Except
 
@@ -113,6 +114,18 @@ numDivide l = foldl1M (\ x y -> numCast [x, y] >>= go) l
             | y == 0 = throwError DivideByZero
             | otherwise = return $ Complex $ x / y
         go _ = throwError $ Default "unexpected error in (/)"
+
+-- |Numerical modulus
+numMod :: [LispVal] -> ThrowsError LispVal
+numMod [] = return $ Number 1
+numMod l = foldl1M (\ x y -> numCast [x, y] >>= go) l
+    where
+        go (List [Number a, Number b]) = return $ Number $ mod' a b
+        go (List [Float a, Float b]) = return $ Float $ mod' a b
+        go (List [Ratio a, Ratio b]) = return $ Ratio $ mod' a b
+        -- #TODO implement modulus for complex numbers
+        go (List [Complex a, Complex b]) = throwError $ Default "modulus is not yet implemented for complex numbers"
+        go _ = throwError $ Default "unexpected error in (modulus)"
 
 -- |Accept two numbers and cast one as the appropriate type
 numCast :: [LispVal] -> ThrowsError LispVal

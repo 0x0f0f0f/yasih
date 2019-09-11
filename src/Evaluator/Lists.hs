@@ -12,7 +12,6 @@ listPrimitives =
     [("car", car),
     ("cdr", cdr),
     ("cons", cons),
-    ("null?", isNull),
     ("append", append),
     ("list", listConstructor),
     -- Type testing functions 
@@ -50,14 +49,6 @@ cons [x, DottedList xs xlast] =
     return $ DottedList (x : xs) xlast 
 cons [x, y] = return $ DottedList [x] y
 cons badArgList = throwError $ NumArgs 2 badArgList
-
--- #TODO move to stdlib
--- |isNull checks if a list is equal to the empty list
-isNull :: [LispVal] -> ThrowsError LispVal
-isNull [List x] = return $ if null x then Bool True else Bool False
-isNull [DottedList [xs] x] = return $ Bool False
-isNull [badArg] = throwError $ TypeMismatch "list" badArg
-isNull badArgList = throwError $ NumArgs 1 badArgList
 
 -- #TODO move to stdlib
 -- |append concatenates two strings

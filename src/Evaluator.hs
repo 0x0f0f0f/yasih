@@ -144,17 +144,15 @@ eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badFo
 apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
 apply (PrimitiveFunc func) args = liftThrows $ func args 
 apply (IOFunc func) args = func args 
-apply (Func params varargs body closure) args = 
+apply (Func params varargs body closure) args 
     -- Throw error if argument number is wrong
-    if num params /= num args && isNothing varargs 
-        then throwError $ NumArgs (num params) args
-        else 
-            -- Bind arguments to a new env and execute statements
-            -- Zip together parameter names and already evaluated args
-            -- together into a list of pairs, then create 
-            -- a new environment for the function closure 
-            liftIO (bindVars closure $ zip params args)
-            >>= bindVarArgs varargs >>= evalBody
+    | num params /= num args && isNothing varargs = throwError $ NumArgs (num params) args
+    -- Bind arguments to a new env and execute statements
+    -- Zip together parameter names and already evaluated args
+    -- together into a list of pairs, then create 
+    -- a new environment for the function closure 
+    | otherwise = liftIO (bindVars closure $ zip params args)
+        >>= bindVarArgs varargs >>= evalBody
     where
         remainingArgs = drop (length params) args
         num = toInteger . length
@@ -164,6 +162,7 @@ apply (Func params varargs body closure) args =
         bindVarArgs arg env = case arg of
             Just argName -> liftIO $ bindVars env [(argName, List remainingArgs)]
             Nothing -> return env
+apply badForm args = throwError $ NotFunction "Not a function: " $ show badForm
 
 -- |Take an initial null environment, make name/value pairs and bind
 -- primitives into the new environment

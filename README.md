@@ -12,9 +12,14 @@ cd haskell-toy-scheme
 
 Install
 
-```
+```sh
+# Compile and the binary
 stack install
+# Copy the standard library to an include path
+mkdir -p ~/.local/lib/toy-scheme/
+cp stdlib/stdlib.scm ~/.local/lib/toy-scheme/stlib.scm
 ```
+
 
 ## Usage
 
