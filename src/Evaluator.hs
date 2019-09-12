@@ -44,8 +44,11 @@ eval env (Atom id) = getVar env id
 -- | load a file and evaluate its contents. A special form
 -- is used because apply does not accept an env binding but 
 -- statements in the loaded file can affect the top level environment
-eval env (List [Atom "load", String filename]) = 
-    loadHelper filename >>= liftM last . mapM (eval env)
+-- #TODO Fix double evaluation
+eval env (List [Atom "load", String filename]) = do
+    loadedFile <- loadHelper filename
+    if null loadedFile then return $ List [] 
+    else loadHelper filename >>= liftM last . mapM (eval env) 
 
 
 -- Set a variable
@@ -145,13 +148,16 @@ eval env form@(List (Atom "cond" : clauses)) = if null clauses
 eval env form@(List (Atom "case" : (key : clauses))) = if null clauses
     then throwError $ BadSpecialForm "No true clause in case expression" form
     else case head clauses of
-        List (Atom "else" : exprs) -> mapM (eval env) exprs >>= liftThrows . return . last 
+        List (Atom "else" : exprs) -> 
+            if null exprs then return $ List [] 
+            else mapM (eval env) exprs >>= liftThrows . return . last 
         List (List datums : exprs) -> do 
             keyValue <- eval env key -- Evaluate the key
             -- Iterate over datums to check for an equal one
             equality <- mapM (\x -> liftThrows (eqv [keyValue, x])) datums 
             if Bool True `elem` equality
-                then mapM (eval env) exprs >>= liftThrows . return . last
+                then if null exprs then return $ List [] 
+                    else mapM (eval env) exprs >>= liftThrows . return . last
                 else eval env $ List (Atom "case" : key : tail clauses)
         _ -> throwError $ BadSpecialForm "Ill-formed clause in case expression" form
 
