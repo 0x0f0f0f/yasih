@@ -20,6 +20,7 @@ ioPrimitives =
     ("read-contents", readContents),
     ("read-all", readAll),
     ("print", printobj),
+    ("display", printobj),
     ("println", println),
     ("newline", newline)]
 
@@ -54,12 +55,10 @@ writeProc badArgList = throwError $ NumArgs 2 badArgList
 
 -- | Display a string or a character
 printobj :: [LispVal] -> IOThrowsError LispVal
-printobj [s@(String _)] = printobj [s, Port stdout]
-printobj [c@(Character _)] = printobj [c, Port stdout]
-printobj [obj] = writeProc [obj, Port stdout]
+printobj [obj] = printobj [obj, Port stdout]
 printobj [String s, Port port] = liftIO $ hPutStr port s >> return (Bool True)
 printobj [Character c, Port port] = liftIO $ hPutStr port (c:"") >> return (Bool True)
-printobj [obj, Port port] = liftIO $ hPrint port obj >> return (Bool True)
+printobj [obj, Port port] = liftIO $ hPutStr port (show obj) >> return (Bool True)
 printobj badArgList = throwError $ NumArgs 2 badArgList
 
 -- | display a newline
@@ -71,7 +70,7 @@ newline badArgList = throwError $ NumArgs 1 badArgList
 -- | Write and append a newline
 println :: [LispVal] -> IOThrowsError LispVal
 println [] = newline []
-println (obj:rest) = printobj [obj] >> printobj rest
+println (obj:rest) = printobj [obj] >> println rest
 
 
 -- | Reads the whole file into a string in memory. Thin wrapper around readFile

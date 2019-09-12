@@ -106,6 +106,16 @@ eval env (List [Atom "if", pred, conseq, alt]) = do
         Bool True -> eval env conseq
         badArg -> throwError $ TypeMismatch "boolean" badArg 
 
+-- If-clause without an else
+eval env (List [Atom "if", pred, conseq]) = do 
+    result <- eval env pred 
+    -- Evaluate pred, if it is false eval alt, if true eval conseq
+    case result of 
+        Bool False -> return $ List []
+        Bool True -> eval env conseq
+        badArg -> throwError $ TypeMismatch "boolean" badArg 
+
+
 -- cond clause: test each one of the alts clauses and eval the first
 -- which test evaluates to true, otherwise eval the 'else' clause
 -- Example: (cond ((> 3 2) 'greater) ((< 3 2) 'less) (else 'equal))
@@ -192,12 +202,18 @@ primitiveBindings = nullEnv >>=
 -- |Primitive functions table
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 primitives = 
+    ("begin", beginBlock) :
     numericalPrimitives ++
     stringPrimitives ++
     boolPrimitives ++
     symbolPrimitives ++
     listPrimitives ++
     equivalencePrimitives
+
+-- |A begin block evaluates a list of statements and returns the value of the last one
+beginBlock :: [LispVal] -> ThrowsError LispVal
+beginBlock [x] = return x
+beginBlock (x:xs) = beginBlock xs
 
 ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
 ioPrimitives = ("apply", applyProc) : Evaluator.IO.ioPrimitives
@@ -208,3 +224,4 @@ applyProc :: [LispVal] -> IOThrowsError LispVal
 applyProc [func, List args] = apply func args
 applyProc [func, DottedList args rest] = applyProc [func, List (args ++ [rest]) ]
 applyProc (func : args) = apply func args
+

@@ -48,3 +48,4 @@ cons [x, DottedList xs xlast] =
 cons [x, y] = return $ DottedList [x] y
 cons badArgList = throwError $ NumArgs 2 badArgList
 
+ 
