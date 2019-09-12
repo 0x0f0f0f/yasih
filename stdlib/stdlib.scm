@@ -37,16 +37,16 @@
 ; Catamorphisms
 
 ; foldr
-(define (foldr func end l) 
-    (if (null? l)
+(define (foldr func end lst) 
+    (if (null? lst)
         end
-        (func (car lst) (foldr func end (cdr list)))))
+        (func (car lst) (foldr func end (cdr lst)))))
 
 ; foldl 
-(define (foldl func accum l)
-    (if (null? l)
+(define (foldl func accum lst)
+    (if (null? lst)
         accum
-        (foldl func (func accum (car l)) (cdr l))))
+        (foldl func (func accum (car lst)) (cdr lst))))
 
 ; standard naming convention
 (define fold foldl)
@@ -80,24 +80,27 @@
         num-list))
 
 ; list length, fold an accumulator over a list counting elements
-(define (length l)
+(define (length lst)
     (fold (lambda (x y)
             (+ x 1))
         0
         lst))
 
 ; map a function over a list
-(define (map f l) 
-    (if (null? l)
-        l 
-        (cons (f (car l)) (map f (cdr l)))))
+(define (map f lst) 
+    (foldr (lambda (x y) (cons (func x) y))) '() lst)
+    
+; filter a list with a predicate. return a list 
+; composed only of the elements that satisfy pred
+(define (filter pred lst)
+    (foldr (lambda (x y) (if (pred x) (cons x y) y)) '() lst))
 
-; #TODO filter, mem helpers
+; list append 
+(define (append lst . lsts)
+    (foldr (flip (curry foldr cons)) lst lsts))
+
 
 ; list reverse
 (define (reverse lst)  
     (fold (flip cons) '() lst))
 
-; list append 
-(define (append l . ls)
-    (foldr (flip (curry foldr cons)) lst lsts))

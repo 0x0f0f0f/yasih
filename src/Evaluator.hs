@@ -10,12 +10,12 @@ import Evaluator.Lists
 import Evaluator.Bool
 import Evaluator.Symbols
 import Evaluator.Equivalence
+import Evaluator.IO
 
 import Data.IORef
 import Data.Maybe
 import Control.Monad.Except
-import System.IO hiding (try)
-import System.Directory 
+
 
 
 -- |Evaluate expressions. Returns a monadic IOThrowsError value
@@ -167,7 +167,8 @@ apply badForm args = throwError $ NotFunction "Not a function: " $ show badForm
 -- |Take an initial null environment, make name/value pairs and bind
 -- primitives into the new environment
 primitiveBindings :: IO Env 
-primitiveBindings = nullEnv >>= flip bindVars (map (makeFunc IOFunc) ioPrimitives ++ map (makeFunc PrimitiveFunc) primitives)
+primitiveBindings = nullEnv >>= 
+    flip bindVars (map (makeFunc IOFunc) Evaluator.ioPrimitives ++ map (makeFunc PrimitiveFunc) primitives)
     where makeFunc constructor (var, func) = (var, constructor func)
 
 -- |Primitive functions table
@@ -180,63 +181,12 @@ primitives =
     listPrimitives ++
     equivalencePrimitives
 
-
 ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
-ioPrimitives = 
-    [("apply", applyProc),
-    ("open-input-file", makePort ReadMode),
-    ("open-output-file", makePort WriteMode),
-    ("close-input-port", closePort),
-    ("close-output-port", closePort),
-    ("read", readProc),
-    ("write", writeProc),
-    ("read-contents", readContents),
-    ("read-all", readAll)]
+ioPrimitives = ("apply", applyProc) : Evaluator.IO.ioPrimitives
 
 -- | Wrapper around apply responsible for destructuring the argument list
 -- into the form apply expects
 applyProc :: [LispVal] -> IOThrowsError LispVal
 applyProc [func, List args] = apply func args
-applyProc [func, DottedList [args] rest] = applyProc [func, List ([args] ++ [rest]) ]
+applyProc [func, DottedList args rest] = applyProc [func, List (args ++ [rest]) ]
 applyProc (func : args) = apply func args
-
--- | Wraps openFile wrapping its return value into a Port.
-makePort :: IOMode -> [LispVal] -> IOThrowsError LispVal
-makePort mode [String filename] = liftM Port $ liftIO $ openFile filename mode
-
--- | Wraps hClose wrapping its return value into a Port.
-closePort :: [LispVal] -> IOThrowsError LispVal
-closePort [Port port] = liftIO $ hClose port >> return (Bool True)
-closePort _ = return $ Bool False
-
--- | readProc wraps the built in hGetLine and sends the ressult to parseExpr
-
--- hGetLine is of type IO String but readExpr is of type String -> ThrowsError LispVal
--- So they both need to be converted (with liftIO and liftThrows) to the IOThrowsError monad
--- Only then they can be piped together by the monadic operator bind (>>=)
-readProc :: [LispVal] -> IOThrowsError LispVal
-readProc [] = readProc [Port stdin]
-readProc [Port port] = liftIO (hGetLine port) >>= liftThrows . readExpr
-readProc [x] = throwError $ TypeMismatch "port" x
-
--- | writeProc converts a LispVal to a string and writes it to the specified port
--- show is called automatically since hPrint accepts a class instance of Show a
-writeProc :: [LispVal] -> IOThrowsError LispVal
-writeProc [obj] = writeProc [obj, Port stdout]
-writeProc [obj, Port port] = liftIO $ hPrint port obj >> return (Bool True)
-
--- | Reads the whole file into a string in memory. Thin wrapper around readFile
-readContents :: [LispVal] -> IOThrowsError LispVal
-readContents [String filename] = liftM String $ liftIO $ readFile filename
-
--- | Read and parse a file full of Lisp statements and return a list
-loadHelper :: String -> IOThrowsError [LispVal]
-loadHelper filename = do 
-    isexists <- liftIO $ doesFileExist filename 
-    if isexists then 
-        liftIO (readFile filename) >>= liftThrows . readExprList
-    else throwError $ Default $ "Could not load file " ++ filename
-
--- | Wraps loadHelper returned list into a LispVal List constructor
-readAll :: [LispVal] -> IOThrowsError LispVal
-readAll [String filename] = liftM List $ loadHelper filename
