@@ -96,6 +96,8 @@
 
 ; list reverse
 (define (reverse lst)  
-    (if (null? lst) 
-        lst 
-        (append (reverse (cdr lst)) (list (car lst)))))
+    (fold (flip cons) '() lst))
+
+; list append 
+(define (append l . ls)
+    (foldr (flip (curry foldr cons)) lst lsts))

@@ -12,8 +12,6 @@ listPrimitives =
     [("car", car),
     ("cdr", cdr),
     ("cons", cons),
-    ("append", append),
-    ("list", listConstructor),
     -- Type testing functions 
     ("list?", unaryOp listp),
     ("vector?", unaryOp vectorp)]
@@ -50,17 +48,3 @@ cons [x, DottedList xs xlast] =
 cons [x, y] = return $ DottedList [x] y
 cons badArgList = throwError $ NumArgs 2 badArgList
 
--- #TODO move to stdlib
--- |append concatenates two strings
--- (append '(a) '(b c d))      =>  (a b c d)
-append :: [LispVal] -> ThrowsError LispVal
-append [List x, List y] = return $ List $ x ++ y
-append [DottedList [xs] x, List y] = return $ List $ [xs] ++ [x] ++ y
-append [List x, DottedList [ys] y] = return $ List $ [ys] ++ [y] ++ x
-append [badArg] = throwError $ TypeMismatch "list" badArg
-append badArgList = throwError $ NumArgs 2 badArgList
-
--- #TODO move to stdlib
--- |listConstructor constructs a list from a value
-listConstructor :: [LispVal] -> ThrowsError LispVal
-listConstructor argList = return $ List argList

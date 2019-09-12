@@ -1,6 +1,6 @@
-name:                haskell-yasih
+name:                yasih
 version:             0.1.0.0
-github:              "0x0f0f0f/haskell-yasih"
+github:              "0x0f0f0f/yasih"
 license:             BSD3
 author:              "Author name here"
 maintainer:          "example@example.com"
@@ -18,7 +18,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/haskell-yasih#readme>
+description:         Please see the README on GitHub at <https://github.com/githubuser/yasih#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -39,10 +39,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - haskell-yasih
+    - yasih
 
 tests:
-  haskell-yasih-test:
+  yasih-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -50,5 +50,5 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - haskell-yasih
+    - yasih
     - hspec

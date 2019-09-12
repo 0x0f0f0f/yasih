@@ -38,5 +38,5 @@ main = do
         [filename] -> runProgram epaths args
         ["-e", expr] -> runOneExpr epaths expr
         _ -> do
-            hPutStrLn stderr "Usage: haskell-yasih [EXPR]"
+            hPutStrLn stderr "Usage: yasih [EXPR]"
             hPutStrLn stderr "If EXPR is provided evaluate it. Otherwise run the REPL."
