@@ -30,7 +30,7 @@ main = do
     -- filter out existing paths
     epaths <- filterM doesDirectoryExist ipaths 
 
-    mapM_ putStrLn epaths
+    -- mapM_ putStrLn epaths
 
     args <- getArgs 
     case args of 

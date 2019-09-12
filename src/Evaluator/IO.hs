@@ -18,7 +18,10 @@ ioPrimitives =
     ("read", readProc),
     ("write", writeProc),
     ("read-contents", readContents),
-    ("read-all", readAll)]
+    ("read-all", readAll),
+    ("print", printobj),
+    ("println", println),
+    ("newline", newline)]
 
 
 
@@ -40,12 +43,36 @@ readProc :: [LispVal] -> IOThrowsError LispVal
 readProc [] = readProc [Port stdin]
 readProc [Port port] = liftIO (hGetLine port) >>= liftThrows . readExpr
 readProc [x] = throwError $ TypeMismatch "port" x
+readProc badArgList = throwError $ NumArgs 2 badArgList
 
 -- | writeProc converts a LispVal to a string and writes it to the specified port
 -- show is called automatically since hPrint accepts a class instance of Show a
 writeProc :: [LispVal] -> IOThrowsError LispVal
 writeProc [obj] = writeProc [obj, Port stdout]
 writeProc [obj, Port port] = liftIO $ hPrint port obj >> return (Bool True)
+writeProc badArgList = throwError $ NumArgs 2 badArgList
+
+-- | Display a string or a character
+printobj :: [LispVal] -> IOThrowsError LispVal
+printobj [s@(String _)] = printobj [s, Port stdout]
+printobj [c@(Character _)] = printobj [c, Port stdout]
+printobj [obj] = writeProc [obj, Port stdout]
+printobj [String s, Port port] = liftIO $ hPutStr port s >> return (Bool True)
+printobj [Character c, Port port] = liftIO $ hPutStr port (c:"") >> return (Bool True)
+printobj [obj, Port port] = liftIO $ hPrint port obj >> return (Bool True)
+printobj badArgList = throwError $ NumArgs 2 badArgList
+
+-- | display a newline
+newline :: [LispVal] -> IOThrowsError LispVal
+newline [] = writeProc [Character '\n', Port stdout]
+newline [Port port] =  writeProc [Character '\n', Port port]
+newline badArgList = throwError $ NumArgs 1 badArgList
+
+-- | Write and append a newline
+println :: [LispVal] -> IOThrowsError LispVal
+println [] = newline []
+println (obj:rest) = printobj [obj] >> printobj rest
+
 
 -- | Reads the whole file into a string in memory. Thin wrapper around readFile
 readContents :: [LispVal] -> IOThrowsError LispVal
@@ -62,3 +89,4 @@ loadHelper filename = do
 -- | Wraps loadHelper returned list into a LispVal List constructor
 readAll :: [LispVal] -> IOThrowsError LispVal
 readAll [String filename] = liftM List $ loadHelper filename
+

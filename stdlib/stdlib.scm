@@ -99,8 +99,6 @@
 (define (append lst . lsts)
     (foldr (flip (curry foldr cons)) lst lsts))
 
-
 ; list reverse
 (define (reverse lst)  
     (fold (flip cons) '() lst))
-

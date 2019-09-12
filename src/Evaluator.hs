@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 module Evaluator where
 
 import LispTypes
@@ -51,14 +52,31 @@ eval env (List [Atom "load", String filename]) =
 eval env (List [Atom "set!", Atom var, form]) =
     eval env form >>= setVar env var
 
+-- #TODO move to an hygienic macro
+-- Let statement, let over lambda
+-- (let ((a 1) (b 2)) body) => ((lambda (a b) body) 1 2)
+eval env (List (Atom "let" : List bndlst : body)) = do
+    mapM_ validateBindings bndlst
+    lambda <- makeNormalFunc env (map getParam bndlst) body 
+    apply lambda $  map getArg bndlst
+    where
+        validateBindings :: LispVal -> IOThrowsError ()
+        validateBindings (List [x@(Atom _), y]) = return ()
+        validateBindings badArg = throwError $ BadSpecialForm "Ill-formed let expression" badArg
+        getParam, getArg :: LispVal -> LispVal 
+        getParam (List b) = head b
+        getArg (List b) = (head . tail) b 
+
 -- Define a variable
 eval env (List [Atom "define", Atom var, form]) =
     eval env form >>= defineVar env var
 
+    
 -- Define a function
 -- (define (f x y) (+ x y)) => (lamda ("x" "y") ...)
 eval env (List (Atom "define" : List (Atom var : params) : body)) = 
     makeNormalFunc env params body >>= defineVar env var
+
 
 -- Define a variable argument function
 -- (define (func a b) c . body)

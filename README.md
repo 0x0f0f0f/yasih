@@ -57,9 +57,9 @@ rlwrap yasih file.scm
 - [ ] Multi line parsing
 - [ ] Standard Library (Chapter 10)
 - [ ] Implement the full [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
-- [ ] Add let statement
-- [ ] begin and do blocks
+- [ ] begin, while and do blocks
 - [ ] Quasiquotation
+- [X] Add let statement
 - [X] Parse comments
 - [X] Import path and autoload stdlib
 - [X] File I/O Primitives (Chapter 9)
