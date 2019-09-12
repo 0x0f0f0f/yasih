@@ -1,4 +1,4 @@
-# haskell-toy-scheme
+# yasih - Yet Another Scheme in Haskell
 
 A small scheme interpreter written following the tutorial book ["Write Yourself a Scheme in 48 Hours"](https://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours) to learn both Haskell and Scheme in detail.
 
@@ -6,8 +6,8 @@ A small scheme interpreter written following the tutorial book ["Write Yourself 
 
 Clone the repo
 ```sh
-git clone https://github.com/0x0f0f0f/haskell-toy-scheme
-cd haskell-toy-scheme
+git clone https://github.com/0x0f0f0f/yasih
+cd yasih
 ```
 
 Install
@@ -16,18 +16,19 @@ Install
 # Compile and the binary
 stack install
 # Copy the standard library to an include path
-mkdir -p ~/.local/lib/toy-scheme/
-cp stdlib/stdlib.scm ~/.local/lib/toy-scheme/stlib.scm
+mkdir -p ~/.local/lib/yasih/
+cp stdlib/stdlib.scm ~/.local/lib/yasih/stlib.scm
 ```
 
 
 ## Usage
 
-The binary `toy-scheme` accepts an expression as the first
+The binary `yasih` accepts a program as the first
 argument, if no argument is passed then a REPL will be started.
+If `-e` is passed as an option the first argument will be evaluated as an expression.
 
 ```sh 
-toy-scheme "(+ 2 3)"
+yasih -e "(+ 2 3)"
 5
 ```
 
@@ -35,8 +36,8 @@ Usage of [rlwrap](https://github.com/hanslub42/rlwrap) when using the REPL is su
 readline features such as arrow keys in the interpreter and bash-like keybindings 
 
 ```lisp
-rlwrap toy-scheme
-λ> (define (map f l) (if (eq? l '()) l (cons (f (car l)) (map f (cdr l)))))
+rlwrap yasih
+λ> (define (map f l) (if (null? l) l (cons (f (car l)) (map f (cdr l)))))
 (lambda ("f" "l") ...)
 λ> (map (lambda (x) (+ 1 x)) '(1 2 3 4))
 (2 3 4 5)
@@ -47,7 +48,7 @@ To try the examples in the `examples` directory run:
 
 ```
 cd examples
-rlwrap toy-scheme file.scm
+rlwrap yasih file.scm
 ```
 
 ## Roadmap
@@ -55,8 +56,10 @@ rlwrap toy-scheme file.scm
 - [ ] Basic Unit Test Suite
 - [ ] Multi line parsing
 - [ ] Standard Library (Chapter 10)
-- [ ] Add more primitives from [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
-- [ ] let statement
+- [ ] Implement the full [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
+- [ ] Add let statement
+- [ ] begin and do blocks
+- [ ] Quasiquotation
 - [X] Parse comments
 - [X] Import path and autoload stdlib
 - [X] File I/O Primitives (Chapter 9)
@@ -77,6 +80,7 @@ rlwrap toy-scheme file.scm
 ## Bugs
 
 - [ ] Handle Exit code on error correctly.
+- [ ] Fix parser for unexpected trailing parens
 - [X] ~~Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part~~
 - [X] ~~Ignore trailing and leading whitespace in lists.~~
 - [X] ~~`equal?` does not recurse over lists. (Exercise 5.2)~~

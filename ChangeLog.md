@@ -1,3 +1,3 @@
-# Changelog for haskell-toy-scheme
+# Changelog for yasih
 
 ## Unreleased changes

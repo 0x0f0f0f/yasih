@@ -7,7 +7,7 @@ declare -i tests_run=0
 declare -i tests_passed=0
 declare -i tests_failed=0
 
-INTERPRETER_NAME="toy-scheme"
+INTERPRETER_NAME="yasih -e"
 
 # Check if the interpreter is in path
 command -v $INTERPRETER_NAME || { echo "Could not find $INTERPRETER_NAME in \$PATH"; exit 1; }

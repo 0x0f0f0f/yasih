@@ -25,7 +25,7 @@ main = do
     ipathStr <- lookupEnv "TOY_SCHEME_INCLUDE"
     ipaths <- case ipathStr of 
         Just x -> return $ split x ':'
-        Nothing -> return ["/usr/lib/toy-scheme/", homedir ++ "/.local/lib/toy-scheme/"]
+        Nothing -> return ["/usr/lib/yasih/", homedir ++ "/.local/lib/yasih/"]
     
     -- filter out existing paths
     epaths <- filterM doesDirectoryExist ipaths 
@@ -38,5 +38,5 @@ main = do
         [filename] -> runProgram epaths args
         ["-e", expr] -> runOneExpr epaths expr
         _ -> do
-            hPutStrLn stderr "Usage: haskell-toy-scheme [EXPR]"
+            hPutStrLn stderr "Usage: haskell-yasih [EXPR]"
             hPutStrLn stderr "If EXPR is provided evaluate it. Otherwise run the REPL."
