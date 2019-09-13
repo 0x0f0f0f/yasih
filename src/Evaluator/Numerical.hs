@@ -32,13 +32,19 @@ numericalPrimitives =
     ("<=", numBoolBinop (<=)),
     -- Type testing functions
     ("number?", unaryOp numberp),
+    ("integer?", unaryOp integerp),
     ("float?", unaryOp floatp),
     ("ratio?", unaryOp ratiop),
     ("complex?", unaryOp complexp)]
 
 -- |Type testing functions
-numberp, floatp, ratiop, complexp :: LispVal -> LispVal
+numberp, integerp, floatp, ratiop, complexp :: LispVal -> LispVal
+integerp (Number _)     = Bool True
+integerp _              = Bool False
 numberp (Number _)      = Bool True
+numberp (Float _)       = Bool True
+numberp (Ratio _)       = Bool True
+numberp (Complex _)     = Bool True
 numberp _               = Bool False
 floatp (Float _)        = Bool True
 floatp _                = Bool False

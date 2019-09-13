@@ -10,7 +10,7 @@ boolPrimitives =
     [("&&", boolBoolBinop (&&)),
     ("||", boolBoolBinop (||)),
     -- Type testing functions 
-    ("bool?", unaryOp boolp)]
+    ("boolean?", unaryOp boolp)]
     
 -- |Type testing functions
 boolp :: LispVal -> LispVal
