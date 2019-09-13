@@ -51,14 +51,28 @@ cd examples
 rlwrap yasih file.scm
 ```
 
+# Testing
+
+There are work in progress integration tests.
+
+To test the R5RS coverage status run
+```
+SILENT=true ./integration-tests/r5rs-coverage.sh
+```
+
+To run general integration tests run
+```
+SILENT=true ./integration-tests/integration-test.sh
+```
+
 ## Roadmap
 
 - [ ] Basic Unit Test Suite
 - [ ] Multi line parsing
-- [ ] Standard Library (Chapter 10)
 - [ ] Implement the full [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
-- [ ] begin, while and do blocks
 - [ ] Quasiquotation
+- [ ] ~~begin~~ while and do blocks
+- [X] Standard Library (Chapter 10)
 - [X] Add let statement
 - [X] Parse comments
 - [X] Import path and autoload stdlib
