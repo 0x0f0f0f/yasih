@@ -83,7 +83,7 @@ showVal v@(Vector x) = "#(" ++ unwordsVector v ++ ")"
 -- Show for functions and ports
 showVal (PrimitiveFunc _) = "<primitive>"
 showVal Func { params = args, vararg = varargs, body = body, closure = env} =
-    "(lambda (" ++ unwords (map show args) ++ 
+    "(lambda (" ++ unwords args ++ 
     (case varargs of 
         Nothing -> ""
         Just arg -> " . " ++ arg) ++ ") ...)"

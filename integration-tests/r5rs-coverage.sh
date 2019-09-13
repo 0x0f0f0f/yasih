@@ -2,216 +2,258 @@
 
 source "`dirname \"$0\"`/framework.sh"
 
+function primitive {
+    t $1 "<primitive>"
+}
 
-describe "R5RS Arithmetic Coverage"
-t "*" "<primitive>"
-t "+" "<primitive>"
-t "-" "<primitive>"
-t "/" "<primitive>"
-t "abs" "<primitive>"
-t "ceiling" "<primitive>"
-t "floor" "<primitive>"
-t "round" "<primitive>"
-t "truncate" "<primitive>"
-t "max" "(lambda (\"first\" . num-list) ...)"
-t "min" "(lambda (\"first\" . num-list) ...)"
+function cover {
+    describe "R5RS $1 Coverage"
+}
 
-describe "R5RS Boolean Coverage"
-t "boolean?" "<primitive>"
-t "not" "(lambda (\"x\") ...)"
+cover "Arithmetic"
+primitive "*"
+primitive "+"
+primitive "-"
+primitive "/"
+primitive "abs"
+primitive "ceiling"
+primitive "floor"
+primitive "round"
+primitive "truncate"
+t "max" "(lambda (first . num-list) ...)"
+t "min" "(lambda (first . num-list) ...)"
 
-describe "R5RS Scientific Coverage"
-t "acos" "<primitive>"
-t "asin" "<primitive>"
-t "atan" "<primitive>"
-t "cos" "<primitive>"
-t "sin" "<primitive>"
-t "exp" "<primitive>"
-t "expt" "<primitive>"
-t "log" "<primitive>"
-t "sqrt" "<primitive>"
-t "tan" "<primitive>"
+cover "Boolean"
+primitive "boolean?"
+t "not" "(lambda (x) ...)"
 
-describe "R5RS Complex Coverage"
-t "angle" "<primitive>"
-t "complex?" "<primitive>"
-t "imag-part" "<primitive>"
-t "real-part" "<primitive>"
-t "magnitude" "<primitive>"
-t "make-polar" "<primitive>"
-t "make-rectangular" "<primitive>"
+cover "Scientific"
+primitive "acos"
+primitive "asin"
+primitive "atan"
+primitive "cos"
+primitive "sin"
+primitive "exp"
+primitive "expt"
+primitive "log"
+primitive "sqrt"
+primitive "tan"
 
-describe "R5RS Append/Reverse Coverage"
-t "append" "(lambda (\"lst\" . lsts) ...)"
-t "reverse" "(lambda (\"lst\") ...)"
+cover "Complex"
+primitive "angle"
+primitive "complex?"
+primitive "imag-part"
+primitive "real-part"
+primitive "magnitude"
+primitive "make-polar"
+primitive "make-rectangular"
 
-describe "R5RS Pairs Coverage"
-t "car" "<primitive>"
-t "cdr" "<primitive>"
-t "cons" "<primitive>"
-t "pair?" "<primitive>"
-t "set-car!" "<primitive>"
-t "set-cdr!" "<primitive>"
+cover "Append/Reverse"
+t "append" "(lambda (lst . lsts) ...)"
+t "reverse" "(lambda (lst) ...)"
 
-describe "R5RS Comparison Coverage"
+cover "Pairs"
+primitive "car"
+primitive "cdr"
+primitive "cons"
+primitive "pair?"
+primitive "set-car!"
+primitive "set-cdr!"
+
+cover "Comparison"
 t "positive?" "(lambda ( . args) ...)"
 t "negative?" "(lambda ( . args) ...)"
 t "zero?" "(lambda ( . args) ...)"
 
-describe "R5RS Integers Coverage"
-t "integer?" "<primitive>"
+cover "Integers"
+primitive "integer?"
 
-describe "R5RS Integer Operators Coverage"
-t "lcm" "<primitive>"
-t "gcd" "<primitive>"
-t "modulo" "<primitive>"
-t "remainder" "<primitive>"
-t "quotient" "<primitive>"
-t "odd?" "(lambda (\"num\") ...)"
-t "even?" "(lambda (\"num\") ...)"
+cover "Integer Operators"
+primitive "lcm"
+primitive "gcd"
+primitive "modulo"
+primitive "remainder"
+primitive "quotient"
+t "odd?" "(lambda (num) ...)"
+t "even?" "(lambda (num) ...)"
 
-describe "R5RS Characters Coverage"
-t "char->integer" "<primitive>"
-t "char-alphabetic?" "<primitive>"
-t "char-ci<=?" "<primitive>"
-t "char-ci<?" "<primitive>"
-t "char-ci=?" "<primitive>"
-t "char-ci>=?" "<primitive>"
-t "char-ci>?" "<primitive>"
-t "char-downcase" "<primitive>"
-t "char-lower-case?" "<primitive>"
-t "char-numeric?" "<primitive>"
-t "char-upcase" "<primitive>"
-t "char-upper-case?" "<primitive>"
-t "char-whitespace?" "<primitive>"
-t "char<=?" "<primitive>"
-t "char<?" "<primitive>"
-t "char=?" "<primitive>"
-t "char>=?" "<primitive>"
-t "char>?" "<primitive>"
-t "char?" "<primitive>"
-t "integer->char" "<primitive>"
+cover "Characters"
+primitive "char->integer"
+primitive "char-alphabetic?"
+primitive "char-ci<=?"
+primitive "char-ci<?"
+primitive "char-ci=?"
+primitive "char-ci>=?"
+primitive "char-ci>?"
+primitive "char-downcase"
+primitive "char-lower-case?"
+primitive "char-numeric?"
+primitive "char-upcase"
+primitive "char-upper-case?"
+primitive "char-whitespace?"
+primitive "char<=?"
+primitive "char<?"
+primitive "char=?"
+primitive "char>=?"
+primitive "char>?"
+primitive "char?"
+primitive "integer->char"
 
-describe "R5RS String Constructors Coverage"
-t "list->string" "<primitive>"
-t "make-string" "<primitive>"
-t "string" "<primitive>"
+cover "String Constructors"
+primitive "list->string"
+primitive "make-string"
+primitive "string"
 
-describe "R5RS String Comparison Coverage"
-t "string-ci<?" "<primitive>"
-t "string-ci=?" "<primitive>"
-t "string-ci>=?" "<primitive>"
-t "string-ci>?" "<primitive>"
-t "string<=?" "<primitive>"
-t "string<?" "<primitive>"
-t "string=?" "<primitive>"
-t "string>=?" "<primitive>"
-t "string>?" "<primitive>"
+cover "String Comparison"
+primitive "string-ci<?"
+primitive "string-ci=?"
+primitive "string-ci>=?"
+primitive "string-ci>?"
+primitive "string<=?"
+primitive "string<?"
+primitive "string=?"
+primitive "string>=?"
+primitive "string>?"
 
-describe "R5RS Equality Coverage"
-t "eq?" "<primitive>"
-t "equal?" "<primitive>"
-t "eqv?" "<primitive>"
+cover "Equality"
+primitive "eq?"
+primitive "equal?"
+primitive "eqv?"
 
-describe "R5RS List Mapping Coverage"
-t "for-each" "(lambda (\"f\" \"lst\") ...)"
-t "map" "(lambda (\"f\" \"lst\") ...)"
+cover "List Mapping"
+t "for-each" "(lambda (f lst) ...)"
+t "map" "(lambda (f lst) ...)"
 
-describe "R5RS Symbol Primitives Coverage"
-t "string->symbol" "<primitive>"
-t "symbol->string" "<primitive>"
-t "symbol?" "<primitive>"
+cover "Symbol Primitives"
+primitive "string->symbol"
+primitive "symbol->string"
+primitive "symbol?"
 
-describe "R5RS Appending Strings Coverage"
-t "string-append" "<primitive>"
+cover "Appending Strings"
+primitive "string-append"
 
-describe "R5RS String Selection Coverage"
-t "string-copy" "<primitive>"
-t "string-length" "<primitive>"
-t "string-ref" "<primitive>"
-t "substring" "<primitive>"
+cover "String Selection"
+primitive "string-copy"
+primitive "string-length"
+primitive "string-ref"
+primitive "substring"
 
-describe "R5RS String Modification Coverage"
-t "string-fill!" "<primitive>"
-t "string-set!" "<primitive>"
+cover "String Modification"
+primitive "string-fill!"
+primitive "string-set!"
 
-describe "R5RS String Predicates Coverage"
-t "string?" "<primitive>"
+cover "String Predicates"
+primitive "string?"
 
-describe "R5RS Loading Coverage"
-t "(load \"`dirname \"$0\"`/../examples/fibonacci.scm\")" "(lambda (\"n\") ...)"
+cover "Loading"
+t "(load \"`dirname \"$0\"`/../examples/fibonacci.scm\")" "(lambda (n) ...)"
 
+cover "Numerical Tower"
+primitive "number?"
 
-# TODO R5RS coverage tests
-# apply: Fly Evaluation
-# assoc: Retrieving Alist Entries
-# assq: Retrieving Alist Entries
-# assv: Retrieving Alist Entries
-# call-with-current-continuation: Continuations
-# call-with-input-file: File Ports
-# call-with-output-file: File Ports
-# call-with-values: Multiple Values
+cover "File Ports"
+primitive "with-input-from-file"
+primitive "with-output-to-file"
+primitive "call-with-input-file"
+primitive "call-with-output-file"
+primitive "open-input-file"
+primitive "open-output-file" 
 
-# char-ready?: Reading
-# close-input-port: Closing
-# close-output-port: Closing
-# current-input-port: Default Ports
-# current-output-port: Default Ports
-# display: Writing
-# dynamic-wind: Dynamic Wind
-# eof-object?: Reading
-# eval: Fly Evaluation
-# exact->inexact: Exactness
-# exact?: Exactness
-# 
-# force: Delayed Evaluation
-# inexact->exact: Exactness
-# inexact?: Exactness
-# input-port?: Ports
-# interaction-environment: Fly Evaluation
-# list: List Constructors
-# list->vector: Vector Creation
-# length: List Selection
-# list-ref: List Selection
-# list-tail: List Selection
-# list?: List Predicates
+cover "Ports"
+primitive "output-port?"
+primitive "input-port?"
 
+cover "Reals and Rationals"
+primitive "rational?"
+primitive "real?"
 
+cover "Closing"
+primitive "close-input-port"
+primitive "close-output-port"
 
-# make-vector: Vector Creation
-# member: List Searching
-# memq: List Searching
-# memv: List Searching
-# newline: Writing
-# null?: List Predicates
-# number->string: Conversion
-# number?: Numerical Tower
-# open-input-file: File Ports
-# open-output-file: File Ports
-# output-port?: Ports
-# peek-char?: Reading
-# procedure?: Procedure Properties
-# rational?: Reals and Rationals
-# read: Scheme Read
-# read-char?: Reading
-# real?: Reals and Rationals
+cover "Reading"
+primitive "char-ready?"
+primitive "eof-object?"
+primitive "peek-char?"
+primitive "read-char?"
 
-# string->list: List/String Conversion
-# string->number: Conversion
+cover "Fly Evaluation"
+primitive "interaction-environment"
+primitive "apply"
+primitive "eval"
 
+cover "Writing"
+primitive "display"
+primitive "newline"
+primitive "write-char"
 
+cover "Delayed Evaluation"
+primitive "force"
 
+cover "Retrieving Alist Entries"
+primitive "assoc"
+primitive "assq"
+primitive "assv"
 
-# values: Multiple Values
-# vector: Vector Creation
-# vector->list: Vector Creation
-# vector-fill!: Vector Accessors
-# vector-length: Vector Accessors
-# vector-ref: Vector Accessors
-# vector-set!: Vector Accessors
-# vector?: Vector Creation
-# with-input-from-file: File Ports
-# with-output-to-file: File Ports
-# write-char: Writing
+cover "Continuations"
+primitive "call-with-current-continuation"
+
+cover "Multiple Values"
+primitive "call-with-values"
+primitive "values"
+
+cover "Default Ports"
+primitive "current-input-port"
+primitive "current-output-port"
+
+cover "Dynamic Wind"
+primitive "dynamic-wind"
+
+cover "Exactness"
+primitive "exact->inexact"
+primitive "exact?"
+primitive "inexact->exact"
+primitive "inexact?"
+
+cover "List Constructors"
+t "list" "(lambda ( . objs) ...)"
+
+cover "List Selection"
+t "length" "(lambda (lst) ...)"
+primitive "list-ref" 
+primitive "list-tail" 
+
+cover "List Predicates"
+primitive "list?"
+primitive "null?"
+
+cover "Vector Creation"
+primitive "list->vector"
+primitive "make-vector"
+primitive "vector"
+primitive "vector->list"
+primitive "vector?"
+
+cover "List Searching"
+primitive "member"
+primitive "memq"
+primitive "memv"
+
+cover "Conversion"
+primitive "number->string"
+primitive "string->number"
+primitive "string->list"
+
+cover "Procedure Properties"
+primitive "procedure?" 
+
+cover "Scheme Read"
+primitive "read"
+
+cover "Vector Accessors"
+primitive "vector-fill!"
+primitive "vector-length"
+primitive "vector-ref"
+primitive "vector-set!"
 
 printf "\n\n$tests_run tests run\n$tests_passed PASSED\n$tests_failed FAILED\n"
