@@ -20,9 +20,16 @@ numericalPrimitives =
     ("-", numSub),
     ("*", numMul),
     ("/", numDivide),
-    ("modulo", numericBinop mod),
+    ("modulo", numMod),
     ("quotient", numericBinop quot),
     ("remainder", numericBinop rem),
+    ("abs", numAbs),
+    ("ceiling", numCeil),
+    ("floor", numFloor),
+    ("round", numRound),
+    ("truncate", numTruncate),
+    -- Conversion
+    ("number->string", numToString),
     -- Numerical Boolean operators
     ("=", numBoolBinop (==)),
     ("<", numBoolBinop (<)),
@@ -53,6 +60,53 @@ ratiop _                = Bool False
 complexp (Complex _)    = Bool True
 complexp _              = Bool False
 
+-- |Absolute value
+numAbs :: [LispVal] -> ThrowsError LispVal
+numAbs [Number x]   = return $ Number $ abs x
+numAbs [Float x]    = return $ Float $ abs x
+numAbs [Complex x]  = return $ Complex $ abs x -- Calculates the magnitude 
+numAbs [Ratio x]    = return $ Ratio $ abs x
+numAbs [x] = throwError $ TypeMismatch "number" x
+numAbs l = throwError $ NumArgs 1 l
+
+-- |Ceiling, floor, round and truncate
+numCeil, numFloor, numRound, numTruncate :: [LispVal] -> ThrowsError LispVal
+numCeil [Number x]   = return $ Number $ ceiling $ fromInteger x
+numCeil [Ratio x]    = return $ Number $ ceiling $ fromRational x
+numCeil [Float x]    = return $ Number $ ceiling x
+numCeil [Complex x]  = 
+    if imagPart x == 0 then return $ Number $ ceiling $ realPart x
+    else throwError $ TypeMismatch "integer or float" $ Complex x
+numCeil [x] = throwError $ TypeMismatch "integer or float" x
+numCeil l = throwError $ NumArgs 1 l
+
+numFloor [Number x]   = return $ Number $ floor $ fromInteger x
+numFloor [Ratio x]    = return $ Number $ floor $ fromRational x
+numFloor [Float x]    = return $ Number $ floor x
+numFloor [Complex x]  = 
+    if imagPart x == 0 then return $ Number $ floor $ realPart x
+    else throwError $ TypeMismatch "integer or float" $ Complex x
+numFloor [x] = throwError $ TypeMismatch "integer or float" x
+numFloor l = throwError $ NumArgs 1 l
+
+numRound [Number x]   = return $ Number $ round $ fromInteger x
+numRound [Ratio x]    = return $ Number $ round $ fromRational x
+numRound [Float x]    = return $ Number $ round x
+numRound [Complex x]  = 
+    if imagPart x == 0 then return $ Number $ round $ realPart x
+    else throwError $ TypeMismatch "integer or float" $ Complex x
+numRound [x] = throwError $ TypeMismatch "integer or float" x
+numRound l = throwError $ NumArgs 1 l
+
+numTruncate [Number x]   = return $ Number $ truncate $ fromInteger x
+numTruncate [Ratio x]    = return $ Number $ truncate $ fromRational x
+numTruncate [Float x]    = return $ Number $ truncate x
+numTruncate [Complex x]  = 
+    if imagPart x == 0 then return $ Number $ truncate $ realPart x
+    else throwError $ TypeMismatch "integer or float" $ Complex x
+numTruncate [x] = throwError $ TypeMismatch "integer or float" x
+numTruncate l = throwError $ NumArgs 1 l
+
 -- |foldl1M is like foldlM but has no base case
 foldl1M :: Monad m => (a -> a -> m a) -> [a] -> m a 
 foldl1M f (x : xs) = foldlM f x xs
@@ -69,7 +123,7 @@ numAdd l    = foldl1M (\ x y -> numCast [x, y] >>= go) l
         go (List [Complex x, Complex y])    = return $ Complex $ x + y
         go _ = throwError $ Default "unexpected error in (+)"
 
-        -- | Subtract numbers
+-- | Subtract numbers
 numSub :: [LispVal] -> ThrowsError LispVal
 numSub []           = throwError $ NumArgs 1 []
 numSub [Number x]   = return $ Number $ -1 * x
@@ -133,6 +187,18 @@ numMod l = foldl1M (\ x y -> numCast [x, y] >>= go) l
         go (List [Complex a, Complex b]) = throwError $ Default "modulus is not yet implemented for complex numbers"
         go _ = throwError $ Default "unexpected error in (modulus)"
 
+-- | Boolean operator
+numBoolBinop :: (LispVal -> LispVal -> Bool) -> [LispVal] -> ThrowsError LispVal
+numBoolBinop op []           = throwError $ Default "need at least two arguments"
+numBoolBinop op [x]          = throwError $ Default "need at least two arguments"
+numBoolBinop op [x, y]       = numCast [x, y] >>= go op
+    where 
+        go op (List [x@(Number _),  y@(Number _)])      = return $ Bool $ x `op` y
+        go op (List [x@(Float _),   y@(Float _)])       = return $ Bool $ x `op` y
+        go op (List [x@(Ratio _),   y@(Ratio _)])       = return $ Bool $ x `op` y
+        go op (List [x@(Complex _), y@(Complex _)])     = return $ Bool $ x `op` y 
+        go op _ = throwError $ Default "unexpected error in boolean operation"
+
 -- |Accept two numbers and cast one as the appropriate type
 numCast :: [LispVal] -> ThrowsError LispVal
 -- Same type, just return the two numbers
@@ -174,3 +240,12 @@ numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] -> ThrowsError Lisp
 numericBinop op val@[_] = throwError $ NumArgs 2 val
 -- Fold the operator leftway if there are enough args
 numericBinop op params = mapM unpackNum params >>= return . Number . foldl1 op 
+
+-- |Convert a Number to a String
+numToString :: [LispVal] -> ThrowsError LispVal
+numToString [Number x] = return $ String $ show x
+numToString [Float x] = return $ String $ show x
+numToString [Ratio x] = return $ String $ show x
+numToString [Complex x] = return $ String $ show x
+numToString [x] = throwError $ TypeMismatch "number" x
+numToString badArgList = throwError $ NumArgs 2 badArgList

@@ -6,6 +6,7 @@ import LispParser
 import Environment
 import Evaluator.Operators
 import Evaluator.Numerical
+import Evaluator.Char
 import Evaluator.Strings
 import Evaluator.Lists
 import Evaluator.Bool
@@ -210,6 +211,7 @@ primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 primitives = 
     ("begin", beginBlock) :
     numericalPrimitives ++
+    charPrimitives ++
     stringPrimitives ++
     boolPrimitives ++
     symbolPrimitives ++

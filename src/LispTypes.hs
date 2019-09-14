@@ -45,12 +45,22 @@ instance Eq LispVal where
     (==) (Bool x)           (Bool y)    = x == y
     (==) (Ratio x)          (Ratio y)   = x == y
     (==) (Complex x)        (Complex y) = x == y
-    (==) (DottedList xs x) (DottedList ys y) = 
+    (==) (DottedList xs x)  (DottedList ys y) = 
         (List $ xs ++ [x]) == (List $ ys ++ [y])
     (==) l1@(List x) l2@(List y) = 
         (length x == length y) && all (uncurry (==)) (zip x y)
 
--- |Helper function to show a Double in full precision
+instance Ord LispVal where 
+    compare (Number x)      (Number y)  = compare x y 
+    compare (Float x)       (Float y)   = compare x y
+    compare (String x)      (String y)  = compare x y
+    compare (Bool x)        (Bool y)    = compare x y
+    compare (Ratio x)       (Ratio y)   = compare x y
+    -- There is no compare instance for complex numbers since it violates trichotomy
+    -- https://math.stackexchange.com/questions/257184/defining-the-complex-numbers/257208#257208
+    compare (Complex x)     (Complex y) = error "Complex numbers do not satisfy the axiom of trichotomy"
+
+    -- |Helper function to show a Double in full precision
 showFullPrecision :: Double -> String
 showFullPrecision x = showFFloat Nothing x ""
 
@@ -73,7 +83,7 @@ showVal (Bool False) = "#f"
 showVal (Ratio r) = 
     (show . numerator) r ++ "/" ++ (show . denominator) r
 showVal (Complex c) = (showFullPrecision. realPart) c 
-    ++ (if imagPart c > 0 then "+" else "")
+    ++ (if imagPart c >= 0 then "+" else "")
     ++ (showFullPrecision . imagPart) c ++ "i"
 showVal (List l) = "(" ++ unwordsList l ++ ")"
 showVal (DottedList hd tl) = "(" ++ unwordsList hd ++ " . " ++ showVal tl ++ ")"

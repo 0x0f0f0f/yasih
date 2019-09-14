@@ -7,13 +7,13 @@ function p {
     t $1 "<primitive>"
 }
 
-# Describe an R5RS coverage test
+# Describe an R5RS coverage test2
 function cover {
     describe "R5RS $1 Coverage"
 }
 
 cover "Arithmetic"
-p "*"
+assert "`$INTERPRETER_NAME \*`" "<primitive>"
 p "+"
 p "-"
 p "/"

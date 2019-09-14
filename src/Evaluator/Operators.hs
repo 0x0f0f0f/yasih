@@ -23,7 +23,8 @@ boolBinop unpacker op args = if length args /= 2
         return $ Bool $ left `op` right 
 
 -- | Type specific boolean operators
-numBoolBinop = boolBinop unpackNum
+charBoolBinop = boolBinop unpackChar
+ciCharBoolBinop = boolBinop unpackCiChar
 strBoolBinop = boolBinop unpackStr
 ciStrBoolBinop = boolBinop unpackCiStr
 boolBoolBinop = boolBinop unpackBool
@@ -39,32 +40,27 @@ unpackBool notBool = throwError $ TypeMismatch "boolean" notBool
 -- |Unpack numbers from LispValues
 unpackNum :: LispVal -> ThrowsError Integer
 unpackNum (Number n) = return n
-unpackNum (String n) = let parsed = reads n in
-    if null parsed then throwError $ TypeMismatch "number" $ String n
-    else return $ fst $ head parsed
 unpackNum (List [n]) = unpackNum n
 unpackNum notNum = throwError $ TypeMismatch "number" notNum
 
 -- |Unpack strings from LispVal
 unpackStr :: LispVal -> ThrowsError String
 unpackStr (String s) = return s
-unpackStr (Number s) = return $ show s 
-unpackStr (Float s) = return $ show s 
-unpackStr (Ratio s) = return $ show s
-unpackStr (Complex s) = return $ show s 
-unpackStr (Bool s ) = return $ show s
 unpackStr notString = throwError $ TypeMismatch "string" notString
 
 -- |Unpack strings from LispVal, case insensitive
 unpackCiStr :: LispVal -> ThrowsError String
 unpackCiStr (String s) = return $ map toLower s
-unpackCiStr (Number s) = return $ show s
-unpackCiStr (Float s) = return $ show s 
-unpackCiStr (Ratio s) = return $ show s
-unpackCiStr (Complex s) = return $ show s 
-unpackCiStr (Bool s) = return $ show s
 unpackCiStr notString = throwError $ TypeMismatch "string" notString
 
+-- |Unpack characters from LispVal
+unpackChar :: LispVal -> ThrowsError Char
+unpackChar (Character c) = return c
+unpackChar notChar = throwError $ TypeMismatch "char" notChar
+
+unpackCiChar :: LispVal -> ThrowsError Char
+unpackCiChar (Character c) = return c
+unpackCiChar notChar = throwError $ TypeMismatch "char" notChar
 
 -- |Helper function that takes an Unpacker and determines if two LispVals
 -- are equal before unpacking them

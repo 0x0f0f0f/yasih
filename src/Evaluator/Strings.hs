@@ -11,6 +11,7 @@ stringPrimitives =
     [("string", stringConstructor), -- String constructors
     ("substring", substring),
     ("string->list", stringToList), -- String conversion
+--  ("string->number", stringToNum),
     ("string=?", strBoolBinop (==)), -- String Comparison
     ("string<?", strBoolBinop (<)),
     ("string>?", strBoolBinop (>)),
@@ -23,15 +24,12 @@ stringPrimitives =
     ("string-ci>=?", ciStrBoolBinop (>=)), 
     ("string-length", stringLength), -- String procedures
     ("string?", unaryOp stringp), -- String predicates
-    ("char?", unaryOp charp),
     ("string-null?", stringNull)]
 
 -- |Type testing functions
-stringp, charp :: LispVal -> LispVal
+stringp :: LispVal -> LispVal
 stringp (String _)      = Bool True
 stringp _               = Bool False
-charp (Character _)     = Bool True
-charp _                 = Bool False
 
 -- |Create a string from a list of characters
 stringConstructor :: [LispVal] -> ThrowsError LispVal
@@ -68,6 +66,16 @@ stringLength badArglist = throwError $ NumArgs 1 badArglist
 
 -- |Convert a String to a List of characters
 stringToList :: [LispVal] -> ThrowsError LispVal
-stringToList [String x] = return $ List $ map (Character) x
+stringToList [String x] = return $ List $ map Character x
 stringToList [x] = throwError $ TypeMismatch "string" x
 stringToList badArglist = throwError $ NumArgs 1 badArglist
+
+-- #TODO parse numbers correctly
+-- |Convert a String to a number by reading it
+-- stringToNum :: [LispVal] -> ThrowsError LispVal
+-- stringToNum [String x] = let parsed = reads x in 
+--     if null parsed then throwError $ TypeMismatch "number" $ String x
+--     else return $ fst $ head parsed
+-- stringToNum [x] = throwError $ TypeMismatch "string" x
+-- stringToNum badArglist = throwError $ NumArgs 1 badArglist
+
