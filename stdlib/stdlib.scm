@@ -88,7 +88,7 @@
 
 ; map a function over a list
 (define (map f lst) 
-    (foldr (lambda (x y) (cons (func x) y))) '() lst)
+    (foldr (lambda (x y) (cons (f x) y))) '() lst)
     
 ; filter a list with a predicate. return a list 
 ; composed only of the elements that satisfy pred

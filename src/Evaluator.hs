@@ -128,7 +128,9 @@ eval env (List [Atom "if", pred, conseq]) = do
 eval env form@(List (Atom "cond" : clauses)) = if null clauses
     then throwError $ BadSpecialForm "No true clause in cond expression" form 
     else case head clauses of
-        List [Atom "else", expr] -> eval env expr 
+        List (Atom "else" : exprs) -> 
+            if null exprs then return $ List [] 
+            else mapM (eval env) exprs >>= liftThrows . return . last 
         -- Piggy back the evaluation of the clauses on the already
         -- Existing if clause.
         List [test, expr] -> eval env $ List [Atom "if", test, expr,
