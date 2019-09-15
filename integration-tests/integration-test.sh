@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source "`dirname \"$0\"`/framework.sh $1"
+source "`dirname \"$0\"`/framework.sh"
 
 # =========================================================================
 # INTEGRATION TESTS

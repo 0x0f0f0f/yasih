@@ -62,10 +62,10 @@ eval env (List [Atom "set!", Atom var, form]) =
 eval env (List (Atom "let" : List bndlst : body)) = do
     mapM_ validateBindings bndlst
     lambda <- makeNormalFunc env (map getParam bndlst) body 
-    apply lambda $  map getArg bndlst
+    apply lambda $ map getArg bndlst
     where
         validateBindings :: LispVal -> IOThrowsError ()
-        validateBindings (List [x@(Atom _), y]) = return ()
+        validateBindings (List [Atom var, value]) = return ()
         validateBindings badArg = throwError $ BadSpecialForm "Ill-formed let expression" badArg
         getParam, getArg :: LispVal -> LispVal 
         getParam (List b) = head b
@@ -163,6 +163,7 @@ eval env form@(List (Atom "case" : (key : clauses))) = if null clauses
                     else mapM (eval env) exprs >>= liftThrows . return . last
                 else eval env $ List (Atom "case" : key : tail clauses)
         _ -> throwError $ BadSpecialForm "Ill-formed clause in case expression" form
+
 
 -- Function application clause
 -- Run eval recursively over args then apply func over the resulting list

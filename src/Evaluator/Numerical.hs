@@ -37,6 +37,23 @@ numericalPrimitives =
     ("/=", numBoolBinop (/=)),
     (">=", numBoolBinop (>=)),
     ("<=", numBoolBinop (<=)),
+    -- Scientific functions
+    ("sqrt", sciSqrt),
+    ("acos", sciAcos),
+    ("asin", sciAsin),
+    ("atan", sciAtan),
+    ("cos", sciCos),
+    ("sin", sciSin),
+    ("tan", sciTan),
+--    ("acosh", sciAcosh),
+--    ("asinh", sciAsinh),
+--    ("atanh", sciAtanh),
+--    ("cosh", sciCosh),
+--    ("sinh", sciSinh),
+--    ("tanh", sciTanh),
+    ("exp", sciExp),
+    ("expt", sciExpt),
+    ("log", sciLog),
     -- Type testing functions
     ("number?", unaryOp numberp),
     ("integer?", unaryOp integerp),
@@ -249,3 +266,84 @@ numToString [Ratio x] = return $ String $ show x
 numToString [Complex x] = return $ String $ show x
 numToString [x] = throwError $ TypeMismatch "number" x
 numToString badArgList = throwError $ NumArgs 2 badArgList
+
+-- | Trigonometric functions
+sciCos, sciSin, sciTan, sciAcos, sciAsin, sciAtan :: [LispVal] -> ThrowsError LispVal
+-- | Cosine of a number
+sciCos [Number x] = return $ Float $ cos $ fromInteger x 
+sciCos [Float x] = return $ Float $ cos x
+sciCos [Ratio x] = return $ Float $ cos $ fromRational x
+sciCos [Complex x] = return $ Complex $ cos x
+sciCos [notnum] = throwError $ TypeMismatch "number" notnum
+sciCos badArgList = throwError $ NumArgs 1 badArgList
+-- | Sine of a number
+sciSin [Number x] = return $ Float $ sin $ fromInteger x 
+sciSin [Float x] = return $ Float $ sin x
+sciSin [Ratio x] = return $ Float $ sin $ fromRational x
+sciSin [Complex x] = return $ Complex $ sin x
+sciSin [notnum] = throwError $ TypeMismatch "number" notnum
+sciSin badArgList = throwError $ NumArgs 1 badArgList
+-- | Tangent of a number
+sciTan [Number x] = return $ Float $ tan $ fromInteger x 
+sciTan [Float x] = return $ Float $ tan x
+sciTan [Ratio x] = return $ Float $ tan $ fromRational x
+sciTan [Complex x] = return $ Complex $ tan x
+sciTan [notnum] = throwError $ TypeMismatch "number" notnum
+sciTan badArgList = throwError $ NumArgs 1 badArgList
+-- | Arccosine of a number
+sciAcos [Number x] = return $ Float $ acos $ fromInteger x 
+sciAcos [Float x] = return $ Float $ acos x
+sciAcos [Ratio x] = return $ Float $ acos $ fromRational x
+sciAcos [Complex x] = return $ Complex $ acos x
+sciAcos [notnum] = throwError $ TypeMismatch "number" notnum
+sciAcos badArgList = throwError $ NumArgs 1 badArgList
+-- | Sine of a number
+sciAsin [Number x] = return $ Float $ asin $ fromInteger x 
+sciAsin [Float x] = return $ Float $ asin x
+sciAsin [Ratio x] = return $ Float $ asin $ fromRational x
+sciAsin [Complex x] = return $ Complex $ asin x
+sciAsin [notnum] = throwError $ TypeMismatch "number" notnum
+sciAsin badArgList = throwError $ NumArgs 1 badArgList
+-- | Tangent of a number
+sciAtan [Number x] = return $ Float $ atan $ fromInteger x 
+sciAtan [Float x] = return $ Float $ atan x
+sciAtan [Ratio x] = return $ Float $ atan $ fromRational x
+sciAtan [Complex x] = return $ Complex $ atan x
+sciAtan [notnum] = throwError $ TypeMismatch "number" notnum
+sciAtan badArgList = throwError $ NumArgs 1 badArgList
+
+-- | Hyperbolic functions
+-- sciAcosh, sciAsinh, sciAtanh, sciCosh, sciSinh, sciTanh :: [LispVal] -> ThrowsError LispVal
+
+-- Misc. Scientific primitives
+sciSqrt, sciExp, sciExpt, sciLog :: [LispVal] -> ThrowsError LispVal
+-- | Square root of a number
+sciSqrt [Number x] = return $ Float $ sqrt $ fromInteger x 
+sciSqrt [Float x] = return $ Float $ sqrt x
+sciSqrt [Ratio x] = return $ Float $ sqrt $ fromRational x
+sciSqrt [Complex x] = return $ Complex $ sqrt x
+sciSqrt [notnum] = throwError $ TypeMismatch "number" notnum
+sciSqrt badArgList = throwError $ NumArgs 1 badArgList
+-- | Return e to the power of x
+sciExp [Number x] = return $ Float $ exp $ fromInteger x 
+sciExp [Float x] = return $ Float $ exp x
+sciExp [Ratio x] = return $ Float $ exp $ fromRational x
+sciExp [Complex x] = return $ Complex $ exp x
+sciExp [notnum] = throwError $ TypeMismatch "number" notnum
+sciExp badArgList = throwError $ NumArgs 1 badArgList
+-- | Return x to the power of y
+sciExpt [x, y] = numCast [x, y] >>= go
+    where 
+        go (List [Number x, Number y])      = return $ Number $ round $ (fromInteger x) ** (fromInteger y) 
+        go (List [Float x, Float y])        = return $ Float $ x ** y
+        go (List [Ratio x, Ratio y])        = return $ Float $ (fromRational x) ** (fromRational y)
+        go (List [Complex x, Complex y])    = return $ Complex $ x ** y
+        go _ = throwError $ Default "unexpected error in (-)"
+sciExpt badArgList = throwError $ NumArgs 2 badArgList
+-- | Return the natural logarithm of x
+sciLog [Number x] = return $ Float $ log $ fromInteger x 
+sciLog [Float x] = return $ Float $ log x
+sciLog [Ratio x] = return $ Float $ log $ fromRational x
+sciLog [Complex x] = return $ Complex $ log x
+sciLog [notnum] = throwError $ TypeMismatch "number" notnum
+sciLog badArgList = throwError $ NumArgs 1 badArgList
