@@ -29,14 +29,16 @@ import Control.Monad.Except
 -- To the specified constructor then binds it back into a LispVal
 -- The result has type LispVal instead of the matched Constructor
 eval :: Env -> LispVal -> IOThrowsError LispVal
-eval env val@(String _)             = return val
-eval env val@(Number _)             = return val
-eval env val@(Float _)              = return val
-eval env val@(Character _)          = return val
-eval env val@(Bool _)               = return val
-eval env val@(Complex _)            = return val
-eval env val@(Ratio _)              = return val
-eval env val@(Vector _)             = return val
+eval env val@(Number _) = return val
+eval env val@(Float _) = return val
+eval env val@(Ratio x)
+    | x == 0 = return $ Number 0
+    | otherwise = return val
+eval env val@(Complex _) = return val
+eval env val@(String _) = return val
+eval env val@(Character _) = return val
+eval env val@(Bool _) = return val
+eval env val@(Vector _) = return val
 eval env (List [Atom "quote", val]) = return val
 
 -- Get a variable

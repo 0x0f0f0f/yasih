@@ -54,6 +54,13 @@ numericalPrimitives =
     ("exp", sciExp),
     ("expt", sciExpt),
     ("log", sciLog),
+    -- Complex numbers operations
+--    ("angle", cAngle),
+    ("real-part", cRealPart),
+    ("imag-part", cImagPart),
+    ("magnitude", cMagnitude),
+    ("make-polar", cMakePolar),
+--    ("make-rectangular", cMakeRectangular),
     -- Type testing functions
     ("number?", unaryOp numberp),
     ("integer?", unaryOp integerp),
@@ -234,11 +241,13 @@ numCast [Float a,  b@(Complex _)]     = return $ List [Complex $ a :+ 0, b]
 -- First number is a rational
 numCast [a@(Ratio _),  Number b]      = return $ List [a, Ratio $ fromInteger b] 
 numCast [Ratio a,  b@(Float _)]       = return $ List [Float $ fromRational a, b] 
-numCast [Ratio a,  b@(Complex _)]     = return $ List [Complex $ fromInteger (numerator a) / fromInteger (denominator a), b]
+numCast [Ratio a,  b@(Complex _)] = 
+    return $ List [Complex $ fromInteger (numerator a) / fromInteger (denominator a), b]
 -- First number is a complex
-numCast [a@(Complex _),  Number b]    = return $ List [a, Complex $ fromInteger b] 
+numCast [a@(Complex _),  Number b] = return $ List [a, Complex $ fromInteger b] 
 numCast [a@(Complex _),  Float b]     = return $ List [a, Complex $ b :+ 0] 
-numCast [a@(Complex _),  Ratio b]     = return $ List [a, Complex $ fromInteger (numerator b) / fromInteger (denominator b)]
+numCast [a@(Complex _),  Ratio b] = 
+    return $ List [a, Complex $ fromInteger (numerator b) / fromInteger (denominator b)]
 -- Error cases
 numCast [a, b] = case a of
         Number _ -> throwError $ TypeMismatch "number" b
@@ -312,6 +321,8 @@ sciAtan [Complex x] = return $ Complex $ atan x
 sciAtan [notnum] = throwError $ TypeMismatch "number" notnum
 sciAtan badArgList = throwError $ NumArgs 1 badArgList
 
+-- #TODO Implement hyperbolic functions
+-- Ask teacher
 -- | Hyperbolic functions
 -- sciAcosh, sciAsinh, sciAtanh, sciCosh, sciSinh, sciTanh :: [LispVal] -> ThrowsError LispVal
 
@@ -347,3 +358,47 @@ sciLog [Ratio x] = return $ Float $ log $ fromRational x
 sciLog [Complex x] = return $ Complex $ log x
 sciLog [notnum] = throwError $ TypeMismatch "number" notnum
 sciLog badArgList = throwError $ NumArgs 1 badArgList
+
+-- #TODO implement phase (angle)
+-- Ask teacher how to convert phase formats from haskell to guile scheme
+-- | Complex number functions
+cRealPart, cImagPart, cMakePolar, cMagnitude  :: [LispVal] -> ThrowsError LispVal
+-- | Real part of a complex number
+cRealPart [Number x] = return $ Number $ fromInteger x 
+cRealPart [Float x] = return $ Float x
+cRealPart [Ratio x] = return $ Float $ fromRational x
+cRealPart [Complex x] = return $ Float $ realPart x
+cRealPart [notnum] = throwError $ TypeMismatch "number" notnum
+cRealPart badArgList = throwError $ NumArgs 1 badArgList
+-- | Imaginary part of a complex number
+cImagPart [Number x] = return $ Number 0 
+cImagPart [Float x] = return $ Number 0
+cImagPart [Ratio x] = return $ Number 0
+cImagPart [Complex x] = return $ Float $ imagPart x
+cImagPart [notnum] = throwError $ TypeMismatch "number" notnum
+cImagPart badArgList = throwError $ NumArgs 1 badArgList
+-- | Form a complex number from polar components of magnitude and phase.
+cMakePolar [mag, p] = numCast [mag, p] >>= go
+        where 
+            go (List [Number mag, Number p]) 
+                | mag == 0 = return $ Number 0   
+                | p == 0 = return $ Number mag
+                | otherwise = return $ Complex $ mkPolar (fromInteger mag) (fromInteger p)
+            go (List [Float mag, Float p])  
+                | mag == 0 = return $ Number 0   
+                | p == 0 = return $ Float mag
+                | otherwise = return $ Complex $ mkPolar mag p
+            go (List [Ratio mag, Ratio p]) 
+                | mag == 0 = return $ Number 0
+                | p == 0 = return $ Float (fromRational mag)
+                | otherwise = return $ Complex $ mkPolar (fromRational mag) (fromRational p)
+            go val@(List [Complex mag, Complex p]) = throwError $ TypeMismatch "real" val
+            go _ = throwError $ Default "unexpected error in make-polar"
+cMakePolar badArgList = throwError $ NumArgs 2 badArgList
+-- | Return the magnitude (length) of a complex number
+cMagnitude [Number x] = return $ Number $ fromInteger x
+cMagnitude [Float x] = return $ Float x
+cMagnitude [Ratio x] = return $ Float $ fromRational x
+cMagnitude [Complex x] = return $ Float $ magnitude x
+cMagnitude [notnum] = throwError $ TypeMismatch "number" notnum
+cMagnitude badArgList = throwError $ NumArgs 1 badArgList
