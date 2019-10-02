@@ -17,21 +17,23 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 -- |Parse an expression
 -- Parse and evaluate a LispVal returning a monadic value
 readOrThrow :: Parser a -> String -> ThrowsError a
-readOrThrow parser input = case parse parser "lisp" input of 
+readOrThrow parser input =
+    let parser' = parser >>= \a -> const a <$> eof in
+    case parse parser' "lisp" input of
     Left err -> throwError $ Parser err
     Right val -> return val
 
 -- |Parse a single expression
-readExpr :: String -> ThrowsError LispVal 
+readExpr :: String -> ThrowsError LispVal
 readExpr = readOrThrow mainParser
 
 -- |Parse multiple expressions
-readExprList :: String -> ThrowsError [LispVal] 
-readExprList = readOrThrow (sepBy mainParser whitespace)
-    
+readExprList :: String -> ThrowsError [LispVal]
+readExprList = readOrThrow (sepBy mainParser whitespace) 
+
 -- | Discard leading whitespace
 mainParser :: Parser LispVal
-mainParser = do 
+mainParser = do
     skipMany whitespace
     skipMany parseComment
     parseExpr
@@ -48,7 +50,7 @@ spaces :: Parser ()
 spaces = skipMany1 space
 
 parseAtom :: Parser LispVal
-parseAtom = do 
+parseAtom = do
     first <- letter <|> symbol
     rest <- many (letter <|> digit <|> symbol)
     return $ Atom ( first : rest )
@@ -58,7 +60,6 @@ parseBool :: Parser LispVal
 parseBool = do
     try $ char '#'
     (char 't' >> return (Bool True)) <|> (char 'f' >> return (Bool False))
-
 
 -- Exercise 2.2 and 2.3
 -- Parse escaped Chars in strings
@@ -76,13 +77,13 @@ parseEscapedChars = do
 
 -- |Parse a string
 parseString :: Parser LispVal
-parseString = do 
+parseString = do
     char '"'
     x <- many (parseEscapedChars <|> noneOf "\"")
     char '"'
     return $ String x
 
--- |Parse a negative sign Char and return an 
+-- |Parse a negative sign Char and return an
 -- Integer value to be multiplied to a parsed number
 parseIntegerSign :: Parser Integer
 parseIntegerSign = do
@@ -92,7 +93,7 @@ parseIntegerSign = do
         Just '+' -> 1
         _ -> 1
 
--- |Parse a negative sign Char and return an 
+-- |Parse a negative sign Char and return an
 -- Integer value to be multiplied to a parsed number
 parseDoubleSign :: Parser Double
 parseDoubleSign = do
@@ -110,41 +111,40 @@ parseDoubleSignStrict = do
         Just '-' -> return $ -1
         Just '+' -> return 1
         _ -> fail "no sign"
-        
 
 -- |Parse a Number
-{-  
+{-
     Parse many digits (Parser String)
-    Then apply a LispVal Atom Number constructor 
+    Then apply a LispVal Atom Number constructor
     Composed with read to the resulting value
     liftM is used to promote the function to a Monad
 -}
 parseNumber :: Parser LispVal
-parseNumber = parseDecimal 
+parseNumber = parseDecimal
     <|> parseDecimalExplBasis
     <|> parseBinary
     <|> parseOctal
     <|> parseHexadecimal
 
-parseDecimal :: Parser LispVal 
+parseDecimal :: Parser LispVal
 parseDecimal = do
     sign <- parseIntegerSign
-    Number . (*sign) . read <$> many1 digit 
+    Number . (*sign) . read <$> many1 digit
 
 parseDecimalExplBasis :: Parser LispVal
-parseDecimalExplBasis = do 
+parseDecimalExplBasis = do
     try $ string "#d"
     sign <- parseIntegerSign
     x <- many1 digit
     (return . Number . (*sign) . read) x
 
 bin2dig = bin2dig' 0
-bin2dig' dig "" = dig 
+bin2dig' dig "" = dig
 bin2dig' dig (x:xs) = bin2dig' (2 * dig + (if x == '0'
     then 0 else 1)) xs
 
 parseBinary :: Parser LispVal
-parseBinary = do 
+parseBinary = do
     try $ string "#b"
     sign <- parseIntegerSign
     x <- many1 $ oneOf "01"
@@ -152,13 +152,13 @@ parseBinary = do
 
 
 parseHexadecimal :: Parser LispVal
-parseHexadecimal = do 
+parseHexadecimal = do
     try $ string "#x"
     sign <- parseIntegerSign
     x <- many1 hexDigit
     (return . Number . (*sign) . fst . head . readHex) x
 
-oct2dig  = () 
+oct2dig  = ()
 parseOctal :: Parser LispVal
 parseOctal = do
     try $ string "#o"
@@ -201,7 +201,7 @@ parseCharacter :: Parser LispVal
 parseCharacter = do
     string "#\\"
     value <- try (string "newline" <|> string "space")
-        <|> do 
+        <|> do
             x <- anyChar
             notFollowedBy alphaNum
             return [x]
@@ -211,8 +211,8 @@ parseCharacter = do
         _ -> head value
 
 -- |Parse an Expression (Either a String, a number or an Atom)
-parseExpr :: Parser LispVal 
-parseExpr = do 
+parseExpr :: Parser LispVal
+parseExpr = do
     expr <- try parseComplex
         <|> try parseRatio
         <|> try parseFloat
@@ -236,9 +236,9 @@ parseList = List <$> sepEndBy parseExpr spaces
 -- |Parse a Dotted list (a b c . d)
 parseDottedList :: Parser LispVal
 parseDottedList = do
-    -- Parse a List of 0 or more expressions 
+    -- Parse a List of 0 or more expressions
     -- Separated by spaces
-    head <- endBy parseExpr spaces  
+    head <- endBy parseExpr spaces
     -- Then parse the remaining Expr after the dot
     tail <- char '.' >> spaces >> parseExpr
     skipMany spaces
@@ -250,7 +250,6 @@ parseQuoted = do
     char '\''
     x <- parseExpr
     return $ List [Atom "quote", x]
-
 
 -- |Parse a QuasiQuoted Expression
 -- See https://schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.6
@@ -265,14 +264,13 @@ parseUnQuote = do
     char '`'
     x <- parseExpr
     return $ List [Atom "unquote", x]
-    
 
--- |Parse a list expression surrounded by parens 
+-- |Parse a list expression surrounded by parens
 parseParens :: Parser LispVal
 parseParens = do
     char '('
     skipMany space
-    x <- try parseDottedList <|> try parseList 
+    x <- try parseDottedList <|> try parseList
     char ')'
     return x
 
@@ -284,10 +282,10 @@ parseVector = do
     skipMany space
     vals <- sepEndBy parseExpr spaces
     char ')'
-    return $ 
+    return $
         Vector $ listArray (0, length vals -1) vals
 
 -- |Parse a comment like
 -- ; this is a lisp comment
 parseComment :: Parser ()
-parseComment = char ';' >> manyTill anyChar newline >> skipMany space >> return () 
+parseComment = char ';' >> manyTill anyChar newline >> skipMany space >> return ()
