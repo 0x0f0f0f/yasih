@@ -17,9 +17,14 @@ readPrompt :: String -> IO String
 readPrompt prompt = flushStr prompt >> getLine
 
 -- |Pull the code to parse, evaluate a string and trap the errors out of main
+-- Reads a list of expressions from a string, maps eval over it, checks if the result
+-- list is empty and return an empty list (nil)
 evalString :: Env -> String -> IO String 
-evalString env expr = runIOThrows $ 
-    liftM show $ liftThrows (readExpr expr) >>= eval env
+evalString env expr = runIOThrows $
+    (liftThrows . readExprList) expr 
+    >>= liftM nilOrLast . mapM (eval env)
+    >>= return . show
+    where nilOrLast x = if null x then List [] else last x
 
 -- |Evaluate a string and print the result
 

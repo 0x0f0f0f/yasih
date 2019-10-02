@@ -213,9 +213,9 @@ numMod l = foldl1M (\ x y -> numCast [x, y] >>= go) l
 
 -- | Boolean operator
 numBoolBinop :: (LispVal -> LispVal -> Bool) -> [LispVal] -> ThrowsError LispVal
-numBoolBinop op []           = throwError $ Default "need at least two arguments"
-numBoolBinop op [x]          = throwError $ Default "need at least two arguments"
-numBoolBinop op [x, y]       = numCast [x, y] >>= go op
+numBoolBinop op [] = throwError $ Default "need at least two arguments"
+numBoolBinop op [x] = throwError $ Default "need at least two arguments"
+numBoolBinop op [x, y] = numCast [x, y] >>= go op
     where 
         go op (List [x@(Number _),  y@(Number _)])      = return $ Bool $ x `op` y
         go op (List [x@(Float _),   y@(Float _)])       = return $ Bool $ x `op` y

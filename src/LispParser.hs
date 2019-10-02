@@ -27,7 +27,7 @@ readExpr = readOrThrow mainParser
 
 -- |Parse multiple expressions
 readExprList :: String -> ThrowsError [LispVal] 
-readExprList = readOrThrow (endBy mainParser whitespace)
+readExprList = readOrThrow (sepBy mainParser whitespace)
     
 -- | Discard leading whitespace
 mainParser :: Parser LispVal
