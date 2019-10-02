@@ -36,7 +36,10 @@ mainParser :: Parser LispVal
 mainParser = do
     skipMany whitespace
     skipMany parseComment
-    parseExpr
+    result <- parseExpr
+    skipMany whitespace
+    skipMany parseComment
+    return result
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
 symbol :: Parser Char
@@ -226,7 +229,6 @@ parseExpr = do
         <|> try parseUnQuote
         <|> try parseVector
         <|> try parseParens
-    skipMany parseComment
     return expr
 
 -- |Parse a List of Atoms like a b c d
@@ -288,4 +290,4 @@ parseVector = do
 -- |Parse a comment like
 -- ; this is a lisp comment
 parseComment :: Parser ()
-parseComment = char ';' >> manyTill anyChar newline >> skipMany space >> return ()
+parseComment = char ';' >> manyTill anyChar eof >> skipMany space >> return ()
