@@ -6,7 +6,6 @@
 - [ ] Quasiquotation
 - [ ] ~~begin~~ while and do blocks
 - [ ] Correct Char parsing (extra characters)
-- [ ] make eval return a Maybe value
 - [X] Standard Library (Chapter 10)
 - [X] Add let statement
 - [X] Parse comments
@@ -29,7 +28,7 @@
 ## Bugs
 
 - [ ] Handle Exit code on error correctly.
-- [ ] Fix parser for unexpected trailing parens
+- [X] Fix parser for unexpected trailing parens
 - [X] ~~Fix parser to correctly parse (and show) complex numbers with a negative real/imaginary part~~
 - [X] ~~Ignore trailing and leading whitespace in lists.~~
 - [X] ~~`equal?` does not recurse over lists. (Exercise 5.2)~~
