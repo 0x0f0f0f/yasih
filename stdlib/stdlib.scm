@@ -1,15 +1,15 @@
 ; boolean negation
-(define (not x) 
+(define (not x)
     (if x #f #t))
 
 ; check if a list is the empty list
-(define (null? x) 
+(define (null? x)
     (if (eqv? x '()) #t #f))
 
 ; list constructor using varargs
-(define (list . objs) objs) 
+(define (list . objs) objs)
 
-; identity function 
+; identity function
 (define (id obj) obj)
 
 ; flip a function argument order
@@ -37,12 +37,12 @@
 ; Catamorphisms
 
 ; foldr
-(define (foldr func end lst) 
+(define (foldr func end lst)
     (if (null? lst)
         end
         (func (car lst) (foldr func end (cdr lst)))))
 
-; foldl 
+; foldl
 (define (foldl func accum lst)
     (if (null? lst)
         accum
@@ -87,18 +87,18 @@
         lst))
 
 ; map a function over a list
-(define (map f lst) 
+(define (map f lst)
     (foldr (lambda (x y) (cons (f x) y))) '() lst)
-    
-; filter a list with a predicate. return a list 
+
+; filter a list with a predicate. return a list
 ; composed only of the elements that satisfy pred
 (define (filter pred lst)
     (foldr (lambda (x y) (if (pred x) (cons x y) y)) '() lst))
 
-; list append 
+; list append
 (define (append lst . lsts)
     (foldr (flip (curry foldr cons)) lst lsts))
 
 ; list reverse
-(define (reverse lst)  
+(define (reverse lst)
     (fold (flip cons) '() lst))

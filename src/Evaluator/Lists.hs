@@ -7,16 +7,16 @@ import Evaluator.Operators
 import Control.Monad.Except
 
 listPrimitives :: [(String, [LispVal] -> ThrowsError LispVal)]
-listPrimitives = 
+listPrimitives =
     -- List Primitives
     [("car", car),
     ("cdr", cdr),
     ("cons", cons),
-    -- Type testing functions 
+    -- Type testing functions
     ("list?", unaryOp listp),
     ("vector?", unaryOp vectorp)]
 
--- | Type testing functions 
+-- | Type testing functions
 listp, vectorp :: LispVal -> LispVal
 listp (List _)          = Bool True
 listp (DottedList _ _)  = Bool True
@@ -39,13 +39,12 @@ cdr [DottedList [xs] x] = return x
 cdr [badArg] = throwError $ TypeMismatch "list" badArg
 cdr badArgList = throwError $ NumArgs 1 badArgList
 
--- |cons concatenates an element to the head of a list 
+-- |cons concatenates an element to the head of a list
 cons :: [LispVal] -> ThrowsError LispVal
 cons [x, List []] = return $ List [x]
 cons [x, List xs] = return $ List $ x : xs
-cons [x, DottedList xs xlast] = 
-    return $ DottedList (x : xs) xlast 
+cons [x, DottedList xs xlast] =
+    return $ DottedList (x : xs) xlast
 cons [x, y] = return $ DottedList [x] y
 cons badArgList = throwError $ NumArgs 2 badArgList
 
- 

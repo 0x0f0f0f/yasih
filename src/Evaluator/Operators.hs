@@ -1,11 +1,11 @@
 {-# LANGUAGE ExistentialQuantification #-}
-module Evaluator.Operators where 
+module Evaluator.Operators where
 
 import LispTypes
 import Data.Char (toLower)
 import Control.Monad.Except
 
--- |Apply an unary operator 
+-- |Apply an unary operator
 unaryOp :: (LispVal -> LispVal) -> [LispVal] -> ThrowsError LispVal
 unaryOp f [v] = return $ f v
 
@@ -16,11 +16,11 @@ unaryOp f [v] = return $ f v
 boolBinop :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
 boolBinop unpacker op args = if length args /= 2
     then throwError $ NumArgs 2 args
-    else do 
+    else do
         left <- unpacker $ head args
         right <- unpacker $ args !! 1
         -- Op function is used as an infix operator by wrapping it in backticks
-        return $ Bool $ left `op` right 
+        return $ Bool $ left `op` right
 
 -- | Type specific boolean operators
 charBoolBinop = boolBinop unpackChar
@@ -33,8 +33,8 @@ boolBoolBinop = boolBinop unpackBool
 data Unpacker = forall a . Eq a => AnyUnpacker (LispVal -> ThrowsError a)
 
 -- |Unpack a Bool value from a LispVal
-unpackBool :: LispVal -> ThrowsError Bool 
-unpackBool (Bool b) = return b 
+unpackBool :: LispVal -> ThrowsError Bool
+unpackBool (Bool b) = return b
 unpackBool notBool = throwError $ TypeMismatch "boolean" notBool
 
 -- |Unpack numbers from LispValues
@@ -64,9 +64,9 @@ unpackCiChar notChar = throwError $ TypeMismatch "char" notChar
 
 -- |Helper function that takes an Unpacker and determines if two LispVals
 -- are equal before unpacking them
-unpackEquals :: LispVal -> LispVal -> Unpacker -> ThrowsError Bool 
-unpackEquals x y (AnyUnpacker unpacker) = do 
-    unpacked1 <- unpacker x 
+unpackEquals :: LispVal -> LispVal -> Unpacker -> ThrowsError Bool
+unpackEquals x y (AnyUnpacker unpacker) = do
+    unpacked1 <- unpacker x
     unpacked2 <- unpacker y
-    return $ unpacked1 == unpacked2 
+    return $ unpacked1 == unpacked2
     `catchError` const (return False)

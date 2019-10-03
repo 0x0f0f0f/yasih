@@ -1,4 +1,4 @@
-module Evaluator.IO where 
+module Evaluator.IO where
 
 import LispTypes
 import LispParser
@@ -7,10 +7,10 @@ import Evaluator.Operators
 
 import Control.Monad.Except
 import System.IO hiding (try)
-import System.Directory 
+import System.Directory
 
 ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
-ioPrimitives = 
+ioPrimitives =
     [("open-input-file", makePort ReadMode),
     ("open-output-file", makePort WriteMode),
     ("close-input-port", closePort),
@@ -79,9 +79,9 @@ readContents [String filename] = liftM String $ liftIO $ readFile filename
 
 -- | Read and parse a file full of Lisp statements and return a list
 loadHelper :: String -> IOThrowsError [LispVal]
-loadHelper filename = do 
-    isexists <- liftIO $ doesFileExist filename 
-    if isexists then 
+loadHelper filename = do
+    isexists <- liftIO $ doesFileExist filename
+    if isexists then
         liftIO (readFile filename) >>= liftThrows . readExprList
     else throwError $ Default $ "Could not load file " ++ filename
 

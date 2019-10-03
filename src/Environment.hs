@@ -1,4 +1,4 @@
-module Environment where 
+module Environment where
 
 import LispTypes
 
@@ -7,7 +7,7 @@ import Data.List
 import Control.Monad.Except
 
 
--- Since IORefs can only be used within IO 
+-- Since IORefs can only be used within IO
 -- |nullEnv creates an empty environment
 nullEnv :: IO Env
 nullEnv = newIORef []
@@ -21,16 +21,16 @@ liftThrows (Right val) = return val
 
 -- |Run the whole top-level IOThrowsError returning an IO action
 runIOThrows :: IOThrowsError String -> IO String
-runIOThrows action = runExceptT (trapError action) 
+runIOThrows action = runExceptT (trapError action)
     >>= return . extractValue
 
 -- Environment Handling
 
 -- |Check if a variable is bound in an environment
--- Extract value from stateful var (envRef), look it up 
+-- Extract value from stateful var (envRef), look it up
 -- and use return to lift a Maybe monad containing True or False into an IO monad
 isBound :: Env -> String -> IO Bool
-isBound envRef var = readIORef envRef 
+isBound envRef var = readIORef envRef
     >>= return . maybe False (const True) . lookup var
 
 -- |Retrieve the current value of a variable
@@ -47,7 +47,7 @@ getVar envRef var = do
 
 -- |Set a variable in an environment and return the value
 setVar :: Env -> String -> LispVal -> IOThrowsError LispVal
-setVar envRef var value = do 
+setVar envRef var value = do
     env <- liftIO $ readIORef envRef
     maybe (throwError $ UnboundVar "Unbound variable" var)
     -- flip switches order of arguments
@@ -68,8 +68,8 @@ defineVar envRef var value = do
     alreadyDef <- liftIO $ isBound envRef var
     if alreadyDef then
         setVar envRef var value >> return value
-    else liftIO $ do 
-        valueRef <- newIORef value 
+    else liftIO $ do
+        valueRef <- newIORef value
         env <- readIORef envRef
         writeIORef envRef ((var, valueRef) : env)
         return value
@@ -81,19 +81,19 @@ defineVar envRef var value = do
 bindVars :: Env -> [(String, LispVal)] -> IO Env
 bindVars envRef bindings =
     readIORef envRef >>= extendEnv bindings >>= newIORef
-    where 
+    where
         -- Call addBinding on each member of bindings to create a list
         -- of (String, IORef LispVal) pairs and append it to the current Environment
         extendEnv bindings env = liftM (++ env) (mapM addBinding bindings)
         -- take a variable name and value and create an IORef holding
-        -- the new value 
-        addBinding (var, value) = do 
+        -- the new value
+        addBinding (var, value) = do
             newVal <- newIORef value
             return (var, newVal)
 
-        
+
 -- |Helper functions to create function objects in IOThrowsError monad
 makeFunc :: Maybe String -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
 makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
-makeNormalFunc = makeFunc Nothing 
+makeNormalFunc = makeFunc Nothing
 makeVarargs = makeFunc . Just . showVal

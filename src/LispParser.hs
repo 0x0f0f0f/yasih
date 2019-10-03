@@ -29,7 +29,7 @@ readExpr = readOrThrow mainParser
 
 -- |Parse multiple expressions
 readExprList :: String -> ThrowsError [LispVal]
-readExprList = readOrThrow (sepBy mainParser whitespace) 
+readExprList = readOrThrow (sepEndBy mainParser whitespace) 
 
 -- | Discard leading whitespace
 mainParser :: Parser LispVal
@@ -47,6 +47,9 @@ symbol = oneOf "!$%&|*/+-:<=?>@^_~"
 
 whitespace :: Parser ()
 whitespace = skipMany1 (space <|> tab)
+
+tokenize :: Parser a -> Parser a
+tokenize = (whitespace >>)
 
 -- |Parser to ignore whitespace
 spaces :: Parser ()

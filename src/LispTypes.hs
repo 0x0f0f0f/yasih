@@ -8,7 +8,7 @@ import Data.IORef
 import Numeric
 import Text.ParserCombinators.Parsec.Error
 import Control.Monad.Except
-import System.IO 
+import System.IO
 
 -- Env is a stateful variable (IORef) that holds a map of strings -> IORef LispVal
 type Env = IORef[(String, IORef LispVal)]
@@ -39,19 +39,19 @@ data LispVal = Atom String -- Simple Types
 
 -- Defining Equality methods for LispVal
 instance Eq LispVal where
-    (==) (Number x)         (Number y)  = x == y 
+    (==) (Number x)         (Number y)  = x == y
     (==) (Float x)          (Float y)   = x == y
     (==) (String x)         (String y)  = x == y
     (==) (Bool x)           (Bool y)    = x == y
     (==) (Ratio x)          (Ratio y)   = x == y
     (==) (Complex x)        (Complex y) = x == y
-    (==) (DottedList xs x)  (DottedList ys y) = 
+    (==) (DottedList xs x)  (DottedList ys y) =
         (List $ xs ++ [x]) == (List $ ys ++ [y])
-    (==) l1@(List x) l2@(List y) = 
+    (==) l1@(List x) l2@(List y) =
         (length x == length y) && all (uncurry (==)) (zip x y)
 
-instance Ord LispVal where 
-    compare (Number x)      (Number y)  = compare x y 
+instance Ord LispVal where
+    compare (Number x)      (Number y)  = compare x y
     compare (Float x)       (Float y)   = compare x y
     compare (String x)      (String y)  = compare x y
     compare (Bool x)        (Bool y)    = compare x y
@@ -80,9 +80,9 @@ showVal (Bool True) = "#t"
 showVal (Bool False) = "#f"
 
 -- Composite types
-showVal (Ratio r) = 
+showVal (Ratio r) =
     (show . numerator) r ++ "/" ++ (show . denominator) r
-showVal (Complex c) = (showFullPrecision. realPart) c 
+showVal (Complex c) = (showFullPrecision. realPart) c
     ++ (if imagPart c >= 0 then "+" else "")
     ++ (showFullPrecision . imagPart) c ++ "i"
 showVal (List l) = "(" ++ unwordsList l ++ ")"
@@ -93,8 +93,8 @@ showVal v@(Vector x) = "#(" ++ unwordsVector v ++ ")"
 -- Show for functions and ports
 showVal (PrimitiveFunc _) = "<primitive>"
 showVal Func { params = args, vararg = varargs, body = body, closure = env} =
-    "(lambda (" ++ unwords args ++ 
-    (case varargs of 
+    "(lambda (" ++ unwords args ++
+    (case varargs of
         Nothing -> ""
         Just arg -> " . " ++ arg) ++ ") ...)"
 showVal (IOFunc _) = "<IO primitive>"
@@ -102,14 +102,14 @@ showVal (Port _) = "<IO port>"
 -- |Helper function mapping showVal over a Lisp List
 -- |Basically unwords for LispVal
 
-{- 
+{-
  unwordsList is defined in point-free style
- no argument is specified and it is written only in 
+ no argument is specified and it is written only in
  terms of function composition and partial application:
  map is partially applied to showVal (creates a fun that
  takes a list of LispVals and returns a list of their
- string representation). Then, it is composed to 
- Haskell's unwords which merges strings in a list 
+ string representation). Then, it is composed to
+ Haskell's unwords which merges strings in a list
  into a single string separated by spaces.
 
  This is an important example of currying
@@ -117,55 +117,55 @@ showVal (Port _) = "<IO port>"
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map showVal
 
-unwordsVector :: LispVal -> String 
+unwordsVector :: LispVal -> String
 unwordsVector (Vector y) = unwords . map showVal $ elems y
 
 -- |Defining the show method for LispVal
--- See https://www.haskell.org/tutorial/classes.html 
+-- See https://www.haskell.org/tutorial/classes.html
 -- for details on typeclasses
 instance Show LispVal where show = showVal
 
 
 -- ERRORS
 
-{- 
+{-
     Some interpreted languages like PHP silently assign
     default values like #f or 0 as a result when errors occur
     This approach means that errors pass silently throughout the
     programs until they can become problematic and need long
-    debugging sessions to get rid of the bug completely. 
+    debugging sessions to get rid of the bug completely.
 
     Here, errors are signaled as soon as they happen and
-    immediately break out of execution 
+    immediately break out of execution
 -}
 
 data LispError = NumArgs Integer [LispVal]
     | DivideByZero
     | TypeMismatch String LispVal
     | Parser ParseError
-    | BadSpecialForm String LispVal 
+    | BadSpecialForm String LispVal
     | NotFunction String String
-    | UnboundVar String String 
+    | UnboundVar String String
     | Default String
 
 -- Make LispError an instance of Show
 showError :: LispError -> String
 showError (Default msg) = show msg
 showError DivideByZero = show "Division by zero!"
-showError (TypeMismatch expected found) = "Invalid type: expected "    
-    ++ expected ++ ", found " ++ show found 
+showError (TypeMismatch expected found) = "Invalid type: expected "
+    ++ expected ++ ", found " ++ show found
 showError (Parser parseErr) = "Parse error at " ++ show parseErr
 showError (BadSpecialForm msg form) = msg ++ ": " ++ show form
 showError (NotFunction msg func) = msg ++ ": " ++ show func
 showError (UnboundVar msg varname) = msg ++ ": " ++ varname
 showError (NumArgs expected found) = "Expected " ++ show expected
-    ++ " args: found values " ++ unwordsList found 
+    ++ " args: found values " ++ unwordsList found
 
 instance Show LispError where show = showError
 
 -- |Type to represent functions that may throw a LispError or return a value.
 
--- Either is only partially applied (curried) to LispError so that ThrowsError 
+-- Either is only partially applied (curried) to LispError so that ThrowsError
 -- can be used with any data type
 -- Either is a monad and the "extra information" carried by it is whether or not
 -- An error has occured. This is why haskell does not need a separate
@@ -180,9 +180,9 @@ type ThrowsError = Either LispError
 type IOThrowsError = ExceptT LispError IO
 
 -- |Convert errors to their string representation and return it
--- trapError action 
--- The result of calling trapError is an Either action which will 
--- always have valid (Right) data. 
+-- trapError action
+-- The result of calling trapError is an Either action which will
+-- always have valid (Right) data.
 trapError action = catchError action (return . show)
 
 -- |Extract a value from a ThrowsError type returned by trapError

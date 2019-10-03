@@ -7,7 +7,7 @@ import Evaluator.Operators
 import Control.Monad.Except
 
 stringPrimitives :: [(String, [LispVal] -> ThrowsError LispVal)]
-stringPrimitives = 
+stringPrimitives =
     [("string", stringConstructor), -- String constructors
     ("substring", substring),
     ("string->list", stringToList), -- String conversion
@@ -21,7 +21,7 @@ stringPrimitives =
     ("string-ci<?", ciStrBoolBinop (<)),
     ("string-ci>?", ciStrBoolBinop (>)),
     ("string-ci<=?", ciStrBoolBinop (<=)),
-    ("string-ci>=?", ciStrBoolBinop (>=)), 
+    ("string-ci>=?", ciStrBoolBinop (>=)),
     ("string-length", stringLength), -- String procedures
     ("string?", unaryOp stringp), -- String predicates
     ("string-null?", stringNull)]
@@ -39,22 +39,22 @@ stringConstructor charl = makestr (String "") charl
     where
         makestr :: LispVal -> [LispVal] -> ThrowsError LispVal
         makestr (String str) (Character x : xs) = makestr (String (str ++ [x])) xs
-        makestr str@(String _) [] = return str 
+        makestr str@(String _) [] = return str
         makestr str (x : xs) = throwError $ TypeMismatch "char" x
 
 -- |Check if a string is empty
 stringNull :: [LispVal] -> ThrowsError LispVal
 stringNull [String x] = return $ Bool $ null x
-stringNull [x] = throwError $ TypeMismatch "string" x 
+stringNull [x] = throwError $ TypeMismatch "string" x
 stringNull badArglist = throwError $ NumArgs 2 badArglist
 
 -- |Make a substring from start to end
 substring :: [LispVal] -> ThrowsError LispVal
-substring [String x, Number start, Number end] 
-    | start < 0 || start > end || start > toInteger (length x) || end > toInteger (length x) = 
+substring [String x, Number start, Number end]
+    | start < 0 || start > end || start > toInteger (length x) || end > toInteger (length x) =
         throwError $ Default "indexes must satisfy 0 <= start <= end (string-length string)"
     | start == end = return $ String ""
-    -- Zip indexes to string and filter out the elements not in the range (start, end)  
+    -- Zip indexes to string and filter out the elements not in the range (start, end)
     | otherwise = return $ String $ map fst $ filter (\(x, i) -> i >= start && i < end) $ zip x [0..]
 substring badArglist = throwError $ NumArgs 3 badArglist
 
@@ -73,7 +73,7 @@ stringToList badArglist = throwError $ NumArgs 1 badArglist
 -- #TODO parse numbers correctly
 -- |Convert a String to a number by reading it
 -- stringToNum :: [LispVal] -> ThrowsError LispVal
--- stringToNum [String x] = let parsed = reads x in 
+-- stringToNum [String x] = let parsed = reads x in
 --     if null parsed then throwError $ TypeMismatch "number" $ String x
 --     else return $ fst $ head parsed
 -- stringToNum [x] = throwError $ TypeMismatch "string" x

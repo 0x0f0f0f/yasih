@@ -1,4 +1,4 @@
-module Evaluator.Char where 
+module Evaluator.Char where
 
 import LispTypes
 import Environment
@@ -8,7 +8,7 @@ import Data.Char
 import Control.Monad.Except
 
 charPrimitives :: [(String, [LispVal] -> ThrowsError LispVal)]
-charPrimitives = 
+charPrimitives =
     [("char?", unaryOp charp), -- Char predicates
     ("char-alphabetic?", charIsAlpha),
     ("char-numeric?", charIsNumeric),
@@ -30,7 +30,7 @@ charPrimitives =
     ("char-ci>?", ciCharBoolBinop (>)),
     ("char-ci<=?", ciCharBoolBinop (<=)),
     ("char-ci>=?", ciCharBoolBinop (>=))]
-    
+
 -- |Type testing functions
 charp :: LispVal -> LispVal
 charp (Character _)     = Bool True

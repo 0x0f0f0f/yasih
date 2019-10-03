@@ -45,15 +45,16 @@ numericalPrimitives =
     ("cos", sciCos),
     ("sin", sciSin),
     ("tan", sciTan),
---    ("acosh", sciAcosh),
---    ("asinh", sciAsinh),
---    ("atanh", sciAtanh),
---    ("cosh", sciCosh),
---    ("sinh", sciSinh),
---    ("tanh", sciTanh),
+    ("asinh", sciAsinh),
+    ("acosh", sciAcosh),
+    ("atanh", sciAtanh),
+    ("cosh", sciCosh),
+    ("sinh", sciSinh),
+    ("tanh", sciTanh),
     ("exp", sciExp),
     ("expt", sciExpt),
     ("log", sciLog),
+    ("log10", sciLog10),
     -- Complex numbers operations
 --    ("angle", cAngle),
     ("real-part", cRealPart),
@@ -306,14 +307,14 @@ sciAcos [Ratio x] = return $ Float $ acos $ fromRational x
 sciAcos [Complex x] = return $ Complex $ acos x
 sciAcos [notnum] = throwError $ TypeMismatch "number" notnum
 sciAcos badArgList = throwError $ NumArgs 1 badArgList
--- | Sine of a number
+-- | Arcsine of a number
 sciAsin [Number x] = return $ Float $ asin $ fromInteger x 
 sciAsin [Float x] = return $ Float $ asin x
 sciAsin [Ratio x] = return $ Float $ asin $ fromRational x
 sciAsin [Complex x] = return $ Complex $ asin x
 sciAsin [notnum] = throwError $ TypeMismatch "number" notnum
 sciAsin badArgList = throwError $ NumArgs 1 badArgList
--- | Tangent of a number
+-- | Arctangent of a number
 sciAtan [Number x] = return $ Float $ atan $ fromInteger x 
 sciAtan [Float x] = return $ Float $ atan x
 sciAtan [Ratio x] = return $ Float $ atan $ fromRational x
@@ -321,10 +322,55 @@ sciAtan [Complex x] = return $ Complex $ atan x
 sciAtan [notnum] = throwError $ TypeMismatch "number" notnum
 sciAtan badArgList = throwError $ NumArgs 1 badArgList
 
--- #TODO Implement hyperbolic functions
--- Ask teacher
 -- | Hyperbolic functions
--- sciAcosh, sciAsinh, sciAtanh, sciCosh, sciSinh, sciTanh :: [LispVal] -> ThrowsError LispVal
+sciAcosh, sciAsinh, sciAtanh, sciCosh, sciSinh, sciTanh :: [LispVal] -> ThrowsError LispVal
+-- | Hyperbolic Arcosine of a number
+sciAsinh [Number x] = return $ Float $ asinh $ fromInteger x 
+sciAsinh [Float x] = return $ Float $ asinh x
+sciAsinh [Ratio x] = return $ Float $ asinh $ fromRational x
+sciAsinh [Complex x] = return $ Complex $ asinh x
+sciAsinh [notnum] = throwError $ TypeMismatch "number" notnum
+sciAsinh badArgList = throwError $ NumArgs 1 badArgList
+-- | Hyperbolic Arccosine of a number
+sciAcosh [Number x] = if x < 1 then
+    return $ Complex $ acosh $ fromInteger x :+ 0
+    else return $ Float $ acosh $ fromInteger x 
+sciAcosh [Float x] = if x < 1 then
+    return $ Complex $ acosh x :+ 0
+    else return $ Float $ acosh  x
+sciAcosh [Ratio x] = return $ Float $ acos $ fromRational x
+sciAcosh [Complex x] = return $ Complex $ acos x
+sciAcosh [notnum] = throwError $ TypeMismatch "number" notnum
+sciAcosh badArgList = throwError $ NumArgs 1 badArgList
+-- | Hyperbolic arctangent of a number
+sciAtanh [Number x] = return $ Float $ atanh $ fromInteger x 
+sciAtanh [Float x] = return $ Float $ atanh x
+sciAtanh [Ratio x] = return $ Float $ atanh $ fromRational x
+sciAtanh [Complex x] = return $ Complex $ atanh x
+sciAtanh [notnum] = throwError $ TypeMismatch "number" notnum
+sciAtanh badArgList = throwError $ NumArgs 1 badArgList
+-- | Cosine of a number
+sciCosh [Number x] = return $ Float $ cosh $ fromInteger x 
+sciCosh [Float x] = return $ Float $ cosh x
+sciCosh [Ratio x] = return $ Float $ cosh $ fromRational x
+sciCosh [Complex x] = return $ Complex $ cosh x
+sciCosh [notnum] = throwError $ TypeMismatch "number" notnum
+sciCosh badArgList = throwError $ NumArgs 1 badArgList
+-- | Sine of a number
+sciSinh [Number x] = return $ Float $ sinh $ fromInteger x 
+sciSinh [Float x] = return $ Float $ sinh x
+sciSinh [Ratio x] = return $ Float $ sinh $ fromRational x
+sciSinh [Complex x] = return $ Complex $ sinh x
+sciSinh [notnum] = throwError $ TypeMismatch "number" notnum
+sciSinh badArgList = throwError $ NumArgs 1 badArgList
+-- | Tangent of a number
+sciTanh [Number x] = return $ Float $ tanh $ fromInteger x 
+sciTanh [Float x] = return $ Float $ tanh x
+sciTanh [Ratio x] = return $ Float $ tanh $ fromRational x
+sciTanh [Complex x] = return $ Complex $ tanh x
+sciTanh [notnum] = throwError $ TypeMismatch "number" notnum
+sciTanh badArgList = throwError $ NumArgs 1 badArgList
+
 
 -- Misc. Scientific primitives
 sciSqrt, sciExp, sciExpt, sciLog :: [LispVal] -> ThrowsError LispVal
@@ -358,6 +404,14 @@ sciLog [Ratio x] = return $ Float $ log $ fromRational x
 sciLog [Complex x] = return $ Complex $ log x
 sciLog [notnum] = throwError $ TypeMismatch "number" notnum
 sciLog badArgList = throwError $ NumArgs 1 badArgList
+-- | Return the base 10 of x
+sciLog10 [Number x] = return $ Float $ logBase 10 $ fromInteger x 
+sciLog10 [Float x] = return $ Float $ logBase 10 x
+sciLog10 [Ratio x] = return $ Float $ logBase 10 $ fromRational x
+sciLog10 [Complex x] = return $ Complex $ logBase 10 x
+sciLog10 [notnum] = throwError $ TypeMismatch "number" notnum
+sciLog10 badArgList = throwError $ NumArgs 1 badArgList
+
 
 -- #TODO implement phase (angle)
 -- Ask teacher how to convert phase formats from haskell to guile scheme
