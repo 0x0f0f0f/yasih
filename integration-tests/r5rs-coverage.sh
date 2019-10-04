@@ -2,10 +2,16 @@
 
 source "`dirname \"$0\"`/framework.sh"
 
-# Test if a procedure is a p
+# Test if a procedure is a primitive
 function p {
     t $1 "<primitive>"
 }
+
+# Test if a procedure is an IO primitive
+function iop {
+    t $1 "<IO primitive>"
+}
+
 
 # Describe an R5RS coverage test2
 function cover {
@@ -161,40 +167,40 @@ cover "Numerical Tower"
 p "number?"
 
 cover "File Ports"
-p "with-input-from-file"
-p "with-output-to-file"
-p "call-with-input-file"
-p "call-with-output-file"
-p "open-input-file"
-p "open-output-file" 
+iop "with-input-from-file"
+iop "with-output-to-file"
+iop "call-with-input-file"
+iop "call-with-output-file"
+iop "open-input-file"
+iop "open-output-file" 
 
 cover "Ports"
-p "output-port?"
-p "input-port?"
+iop "output-port?"
+iop "input-port?"
 
 cover "Reals and Rationals"
 p "rational?"
 p "real?"
 
 cover "Closing"
-p "close-input-port"
-p "close-output-port"
+iop "close-input-port"
+iop "close-output-port"
 
 cover "Reading"
-p "char-ready?"
-p "eof-object?"
-p "peek-char?"
-p "read-char?"
+iop "char-ready?"
+iop "eof-object?"
+iop "peek-char?"
+iop "read-char?"
 
 cover "Fly Evaluation"
 p "interaction-environment"
-p "apply"
+iop "apply"
 p "eval"
 
 cover "Writing"
-p "display"
-p "newline"
-p "write-char"
+iop "display"
+iop "newline"
+iop "write-char"
 
 cover "Delayed Evaluation"
 p "force"
@@ -207,8 +213,8 @@ p "call-with-values"
 p "values"
 
 cover "Default Ports"
-p "current-input-port"
-p "current-output-port"
+iop "current-input-port"
+iop "current-output-port"
 
 cover "Exactness"
 p "exact->inexact"
@@ -253,7 +259,7 @@ cover "Procedure Properties"
 p "procedure?" 
 
 cover "Scheme Read"
-p "read"
+iop "read"
 
 cover "Vector Accessors"
 p "vector-fill!"

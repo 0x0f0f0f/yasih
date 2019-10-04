@@ -1,11 +1,12 @@
 ## Roadmap
 
 - [ ] Basic Unit Test Suite
-- [ ] Multi line parsing
+- [ ] Multi line parsing in REPL
 - [ ] Implement the full [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
 - [ ] Quasiquotation
 - [ ] ~~begin~~ while and do blocks
 - [ ] Correct Char parsing (extra characters)
+- [X] Throw error when redefining a reserved keyword
 - [X] Standard Library (Chapter 10)
 - [X] Add let statement
 - [X] Parse comments

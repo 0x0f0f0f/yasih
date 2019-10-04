@@ -56,6 +56,7 @@ eval env (List [Atom "load", String filename]) = do
 
 -- Set a variable
 eval env (List [Atom "set!", Atom var, form]) =
+    checkReserved var >>
     eval env form >>= setVar env var
 
 -- #TODO move to an hygienic macro
@@ -75,18 +76,21 @@ eval env (List (Atom "let" : List bndlst : body)) = do
 
 -- Define a variable
 eval env (List [Atom "define", Atom var, form]) =
+    checkReserved var >>
     eval env form >>= defineVar env var
 
     
 -- Define a function
 -- (define (f x y) (+ x y)) => (lamda ("x" "y") ...)
 eval env (List (Atom "define" : List (Atom var : params) : body)) = 
+    checkReserved var >>
     makeNormalFunc env params body >>= defineVar env var
 
 
 -- Define a variable argument function
 -- (define (func a b) c . body)
 eval env (List (Atom "define" : DottedList (Atom var : params)  varargs : body)) = 
+    checkReserved var >>
     makeVarargs varargs env params body >>= defineVar env var
 
 -- λλλ Lambda functions! λλλ
@@ -238,3 +242,11 @@ applyProc [func, List args] = apply func args
 applyProc [func, DottedList args rest] = applyProc [func, List (args ++ [rest]) ]
 applyProc (func : args) = apply func args
 
+
+reservedKeywords = ["define", "load", "if", "cond", "case", "apply", "lambda", "set!"]
+checkReserved :: String -> IOThrowsError ()
+checkReserved var
+    | var `elem` reservedKeywords = throwError $ ReservedKeyword var
+    | otherwise = case lookup var primitives of
+        Just a -> throwError $ ReservedKeyword var
+        Nothing -> return ()

@@ -146,6 +146,7 @@ data LispError = NumArgs Integer [LispVal]
     | BadSpecialForm String LispVal
     | NotFunction String String
     | UnboundVar String String
+    | ReservedKeyword String
     | Default String
 
 -- Make LispError an instance of Show
@@ -160,6 +161,7 @@ showError (NotFunction msg func) = msg ++ ": " ++ show func
 showError (UnboundVar msg varname) = msg ++ ": " ++ varname
 showError (NumArgs expected found) = "Expected " ++ show expected
     ++ " args: found values " ++ unwordsList found
+showError (ReservedKeyword var) = "reserved keyword: " ++ var
 
 instance Show LispError where show = showError
 
