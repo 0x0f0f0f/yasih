@@ -210,9 +210,6 @@ cover "Default Ports"
 p "current-input-port"
 p "current-output-port"
 
-cover "Dynamic Wind"
-p "dynamic-wind"
-
 cover "Exactness"
 p "exact->inexact"
 p "exact?"

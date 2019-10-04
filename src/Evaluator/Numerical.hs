@@ -23,6 +23,7 @@ numericalPrimitives =
     ("modulo", numMod),
     ("quotient", numericBinop quot),
     ("remainder", numericBinop rem),
+    ("gcd", numGcd),
     ("abs", numAbs),
     ("ceiling", numCeil),
     ("floor", numFloor),
@@ -208,9 +209,25 @@ numMod l = foldl1M (\ x y -> numCast [x, y] >>= go) l
         go (List [Number a, Number b]) = return $ Number $ mod' a b
         go (List [Float a, Float b]) = return $ Float $ mod' a b
         go (List [Ratio a, Ratio b]) = return $ Ratio $ mod' a b
-        -- #TODO implement modulus for complex numbers
         go (List [Complex a, Complex b]) = throwError $ Default "modulus is not yet implemented for complex numbers"
         go _ = throwError $ Default "unexpected error in (modulus)"
+
+
+
+-- |Greatest Common Divisor
+numGcd :: [LispVal] -> ThrowsError LispVal
+numGcd [] = return $ Number 0
+numGcd l = foldl1M (\ x y -> numCast [x, y] >>= go) l
+    where
+        go (List [Number a, Number b]) = return $ Number $ gcd a b
+        go (List [Float a, Float b]) = return $ Float $ gcd' a b
+        go (List [Ratio a, Ratio b]) = return $ Ratio $ gcd' (fromRational a) (fromRational b)
+        go (List [Complex a, Complex b]) = throwError $ Default "gcd is not yet implemented for complex numbers"
+        go _ = throwError $ Default "unexpected error in (gcd)"
+        gcd' a b
+            | b == 0     = abs a
+            | otherwise  = gcd' b (a `mod'` b)
+        
 
 -- | Boolean operator
 numBoolBinop :: (LispVal -> LispVal -> Bool) -> [LispVal] -> ThrowsError LispVal
