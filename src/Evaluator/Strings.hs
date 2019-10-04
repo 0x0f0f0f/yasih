@@ -1,5 +1,6 @@
 module Evaluator.Strings where
 
+import LispParser
 import LispTypes
 import Environment
 import Evaluator.Operators
@@ -11,7 +12,7 @@ stringPrimitives =
     [("string", stringConstructor), -- String constructors
     ("substring", substring),
     ("string->list", stringToList), -- String conversion
---  ("string->number", stringToNum),
+    ("string->number", stringToNum),
     ("string=?", strBoolBinop (==)), -- String Comparison
     ("string<?", strBoolBinop (<)),
     ("string>?", strBoolBinop (>)),
@@ -70,12 +71,15 @@ stringToList [String x] = return $ List $ map Character x
 stringToList [x] = throwError $ TypeMismatch "string" x
 stringToList badArglist = throwError $ NumArgs 1 badArglist
 
--- #TODO parse numbers correctly
+
 -- |Convert a String to a number by reading it
--- stringToNum :: [LispVal] -> ThrowsError LispVal
--- stringToNum [String x] = let parsed = reads x in
---     if null parsed then throwError $ TypeMismatch "number" $ String x
---     else return $ fst $ head parsed
--- stringToNum [x] = throwError $ TypeMismatch "string" x
--- stringToNum badArglist = throwError $ NumArgs 1 badArglist
+stringToNum :: [LispVal] -> ThrowsError LispVal
+stringToNum [String x] = case readExpr x of 
+    Right a@(Number _) -> return a
+    Right a@(Float _) -> return a
+    Right a@(Ratio _) -> return a
+    Right a@(Complex _) -> return a
+    _ -> return $ Bool False
+stringToNum [x] = throwError $ TypeMismatch "string" x
+stringToNum badArglist = throwError $ NumArgs 1 badArglist
 
