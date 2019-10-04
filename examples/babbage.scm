@@ -1,13 +1,11 @@
-;; Charles Babbage, looking ahead to the sorts of problems his 
-;; Analytical Engine would be able to solve, gave this example:
-
-;; What is the smallest positive integer whose square ends in the digits 269,696?
-
+; Charles Babbage, looking ahead to the sorts of problems his 
+; Analytical Engine would be able to solve, gave this example:
+; What is the smallest positive integer whose square ends in the digits 269,696?
 (define (digits n)
   (string->list (number->string n)))
  
-(define (ends-with list tail)
-  ;; does list end with tail?
+; does list end with tail?
+(define (ends-with list tail) 
   (starts-with (reverse list)
                (reverse tail)))
  
@@ -21,8 +19,7 @@
         (else
          #f)))
  
-(define (babbage start) 
-  (let loop ((i 1))
+(define (babbage i) 
     (if (ends-with (digits (* i i)) (digits 269696))
         i
-        (loop (+ i 1)))))
+        (babbage (+ i 1))))

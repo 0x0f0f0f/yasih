@@ -6,6 +6,8 @@ import Environment
 import LispParser
 import Control.Monad.Except
 
+import Data.Char (isSpace)
+import Data.List (isPrefixOf)
 import System.IO hiding (try) -- Hiding try because of Parsec try usage
 
 -- |Prints out a string and immediately flush the stream.
@@ -32,17 +34,19 @@ evalAndPrint :: Env -> String -> IO ()
 evalAndPrint env expr = evalString env expr >>= putStrLn
 
 -- |Custom loop for REPL. Monadic functions that repeats but does not return a
--- value. until_ takes a predicate that signals when to stop, an action to
+-- value. replLoop takes a predicate that signals when to stop, an action to
 -- perform before the test and a function that returns an action to apply to
 -- the input.
-until_ :: Monad m => (a -> Bool) -> m a -> (a -> m ()) -> m ()
-until_ pred prompt action = do
+replLoop :: Monad m => m String -> (String -> m ()) -> m ()
+replLoop prompt action = do
     result <- prompt
-    if pred result
-        then return () -- If the predicate returns true stop
-        -- Else run action then recurse-loop
-        else action result >> until_ pred prompt action
-
+    if ";" `isPrefixOf` dropWhile isSpace result then replLoop prompt action 
+    else case result of
+        "quit" -> return ()
+        "exit" -> return ()
+        "" -> replLoop prompt action
+        _ -> action result >> replLoop prompt action
+    
 -- |Try to load the standard library from an include path list
 loadStdlib :: [String] -> Env -> IO ()
 loadStdlib ipaths env = do
@@ -74,4 +78,4 @@ runRepl :: [String] -> IO ()
 runRepl ipaths = do
     env <- primitiveBindings
     loadStdlib ipaths env
-    until_ (== "quit") (readPrompt "λ> ") (evalAndPrint env)
+    replLoop (readPrompt "λ> ") (evalAndPrint env)

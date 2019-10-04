@@ -18,10 +18,13 @@ import Text.ParserCombinators.Parsec hiding (spaces)
 -- Parse and evaluate a LispVal returning a monadic value
 readOrThrow :: Parser a -> String -> ThrowsError a
 readOrThrow parser input =
-    let parser' = parser >>= \a -> const a <$> eof in
+    let checkEmpty = do
+          rest <- getInput
+          unless (null rest) $ fail $ "Non-empty: " ++ rest
+        parser' = parser <* checkEmpty in
     case parse parser' "lisp" input of
-    Left err -> throwError $ Parser err
-    Right val -> return val
+        Left err -> throwError $ Parser err
+        Right val -> return val
 
 -- |Parse a single expression
 readExpr :: String -> ThrowsError LispVal
@@ -292,4 +295,4 @@ parseVector = do
 -- |Parse a comment like
 -- ; this is a lisp comment
 parseComment :: Parser ()
-parseComment = char ';' >> manyTill anyChar newline >> return ()
+parseComment = void (try (char ';') >> manyTill anyChar (void (char '\n') <|> eof))
