@@ -29,7 +29,7 @@ readExpr = readOrThrow mainParser
 
 -- |Parse multiple expressions
 readExprList :: String -> ThrowsError [LispVal]
-readExprList = readOrThrow (sepEndBy mainParser whitespace) 
+readExprList = readOrThrow $ many1 mainParser
 
 -- | Discard leading whitespace
 mainParser :: Parser LispVal
@@ -218,8 +218,7 @@ parseCharacter = do
 
 -- |Parse an Expression (Either a String, a number or an Atom)
 parseExpr :: Parser LispVal
-parseExpr = do
-    expr <- try parseComplex
+parseExpr = try parseComplex
         <|> try parseRatio
         <|> try parseFloat
         <|> try parseNumber
@@ -232,7 +231,7 @@ parseExpr = do
         <|> try parseUnQuote
         <|> try parseVector
         <|> try parseParens
-    return expr
+
 
 -- |Parse a List of Atoms like a b c d
 parseList :: Parser LispVal
@@ -293,4 +292,4 @@ parseVector = do
 -- |Parse a comment like
 -- ; this is a lisp comment
 parseComment :: Parser ()
-parseComment = char ';' >> manyTill anyChar eof >> skipMany space >> return ()
+parseComment = char ';' >> manyTill anyChar newline >> return ()
