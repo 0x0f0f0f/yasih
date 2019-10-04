@@ -109,7 +109,7 @@ p "char?"
 p "integer->char"
 
 cover "String Constructors"
-p "list->string"
+t "list->string" "(lambda (lst) ...)"
 p "make-string"
 p "string"
 
@@ -199,11 +199,6 @@ p "write-char"
 cover "Delayed Evaluation"
 p "force"
 
-cover "Retrieving Alist Entries"
-p "assoc"
-p "assq"
-p "assv"
-
 cover "Continuations"
 p "call-with-current-continuation"
 
@@ -244,9 +239,13 @@ p "vector->list"
 p "vector?"
 
 cover "List Searching"
-p "member"
-p "memq"
-p "memv"
+t "member" "(lambda (x lst) ...)"
+t "memq" "(lambda (x lst) ...)"
+t "memv" "(lambda (x lst) ...)"
+t "assoc" "(lambda (x lst) ...)"
+t "assq" "(lambda (x lst) ...)"
+t "assv" "(lambda (x lst) ...)"
+
 
 cover "Conversion"
 p "number->string"

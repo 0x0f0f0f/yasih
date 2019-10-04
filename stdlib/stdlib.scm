@@ -102,3 +102,50 @@
 ; list reverse
 (define (reverse lst)
     (fold (flip cons) '() lst))
+
+; list searching 
+
+; helper function, accepts a predicate and an operation for the next element
+; the accumulator acc represents the first value found, starts with #f
+; and takes the first value that satisfies the predicate
+; avoid finding subsequent values by testing for a non false value
+; and returning the existing accumulator if set 
+(define (mem-helper pred op)
+    ((lambda (acc next)
+        (if (and (not acc) (pred (op next)))
+            next
+            acc))))
+
+; Return the first sublist of lst whose car is eq? to x where the sublists of 
+; lst are non-empty lists. 
+; If x does not occur in lst, then #f (not the empty list) is returned.)
+(define (memq x lst)
+    (fold (mem-helper (curry eq? x) id) #f lst))
+
+; same as memq but use eqv? for equivalence testing
+(define (memv x lst)
+    (fold (mem-helper (curry eqv? x) id) #f lst))
+
+; same as memq but use equal? for equivalence testing
+(define (member x lst)
+    (fold (mem-helper (curry equal? x) id) #f lst))
+
+; assq, assv and assoc take an alist and a key as arguments and return the
+; entry for that key if an entry exists, or #f if there is no entry for 
+; that key. Note that, in the cases where an entry exists, these procedures
+;  return the complete entry, that is (KEY . VALUE), not just the value.
+; for example: (assq 2 '((1 . "a") (2 . "b"))) => (2 . "b")
+
+(define (assq x lst)
+    (fold (mem-helper (curry eq? x) car) #f lst))
+
+; same as memq but use eqv? for equivalence testing
+(define (assv x lst)
+    (fold (mem-helper (curry eqv? x) car) #f lst))
+
+; same as memq but use equal? for equivalence testing
+(define (assoc x lst)
+    (fold (mem-helper (curry equal? x) car) #f lst))
+
+; string constructors
+(define (list->string lst) (apply string lst))
