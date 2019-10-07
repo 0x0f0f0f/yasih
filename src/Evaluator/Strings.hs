@@ -74,7 +74,7 @@ stringToList badArglist = throwError $ NumArgs 1 badArglist
 
 -- |Convert a String to a number by reading it
 stringToNum :: [LispVal] -> ThrowsError LispVal
-stringToNum [String x] = case readExpr x of 
+stringToNum [String x] = case readExpr x of
     Right a@(Number _) -> return a
     Right a@(Float _) -> return a
     Right a@(Ratio _) -> return a

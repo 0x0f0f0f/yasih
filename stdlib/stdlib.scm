@@ -12,6 +12,9 @@
 ; list constructor using varargs
 (define (list . objs) objs)
 
+; vector constructor using varargs
+(define (vector . objs) (list->vector objs))
+
 ; identity function
 (define (id obj) obj)
 

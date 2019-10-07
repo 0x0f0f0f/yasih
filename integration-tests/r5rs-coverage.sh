@@ -237,7 +237,7 @@ t "null?" "(lambda (x) ...)"
 cover "Vector Creation"
 p "list->vector"
 p "make-vector"
-p "vector"
+t "vector" "(lambda ( . objs) ...)"
 p "vector->list"
 p "vector?"
 

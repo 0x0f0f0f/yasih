@@ -13,6 +13,7 @@ import Evaluator.Bool
 import Evaluator.Symbols
 import Evaluator.Equivalence
 import Evaluator.IO
+import Evaluator.Vector
 
 import Data.IORef
 import Data.Maybe
@@ -50,9 +51,8 @@ eval env (Atom id) = getVar env id
 -- #TODO Fix double evaluation
 eval env (List [Atom "load", String filename]) = do
     loadedFile <- loadHelper filename
-    if null loadedFile then return $ List [] 
-    else loadHelper filename >>= liftM last . mapM (eval env) 
-
+    if null loadedFile then return $ List []
+    else loadHelper filename >>= liftM last . mapM (eval env)
 
 -- Set a variable
 eval env (List [Atom "set!", Atom var, form]) =
@@ -64,7 +64,7 @@ eval env (List [Atom "set!", Atom var, form]) =
 -- (let ((a 1) (b 2)) body) => ((lambda (a b) body) 1 2)
 eval env (List (Atom "let" : List bndlst : body)) = do
     mapM_ validateBindings bndlst
-    lambda <- makeNormalFunc env (map getParam bndlst) body 
+    lambda <- makeNormalFunc env (map getParam bndlst) body
     apply lambda $ map getArg bndlst
     where
         validateBindings :: LispVal -> IOThrowsError ()
@@ -136,7 +136,7 @@ eval env form@(List (Atom "cond" : clauses)) = if null clauses
     else case head clauses of
         List (Atom "else" : exprs) -> 
             if null exprs then return $ List [] 
-            else mapM (eval env) exprs >>= liftThrows . return . last 
+            else mapM (eval env) exprs >>= liftThrows . return . last
         -- Piggy back the evaluation of the clauses on the already
         -- Existing if clause.
         List [test, expr] -> eval env $ List [Atom "if", test, expr,
@@ -159,11 +159,11 @@ eval env form@(List (Atom "case" : (key : clauses))) = if null clauses
     else case head clauses of
         List (Atom "else" : exprs) -> 
             if null exprs then return $ List [] 
-            else mapM (eval env) exprs >>= liftThrows . return . last 
+            else mapM (eval env) exprs >>= liftThrows . return . last
         List (List datums : exprs) -> do 
             keyValue <- eval env key -- Evaluate the key
             -- Iterate over datums to check for an equal one
-            equality <- mapM (\x -> liftThrows (eqv [keyValue, x])) datums 
+            equality <- mapM (\x -> liftThrows (eqv [keyValue, x])) datums
             if Bool True `elem` equality
                 then if null exprs then return $ List [] 
                     else mapM (eval env) exprs >>= liftThrows . return . last
@@ -225,7 +225,8 @@ primitives =
     boolPrimitives ++
     symbolPrimitives ++
     listPrimitives ++
-    equivalencePrimitives
+    equivalencePrimitives ++
+    vectorPrimitives
 
 -- |A begin block evaluates a list of statements and returns the value of the last one
 beginBlock :: [LispVal] -> ThrowsError LispVal
