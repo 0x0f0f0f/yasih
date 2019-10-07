@@ -172,11 +172,12 @@ iop "with-output-to-file"
 iop "call-with-input-file"
 iop "call-with-output-file"
 iop "open-input-file"
-iop "open-output-file" 
+iop "open-output-file"
 
 cover "Ports"
 iop "output-port?"
 iop "input-port?"
+iop "port?"
 
 cover "Reals and Rationals"
 p "rational?"

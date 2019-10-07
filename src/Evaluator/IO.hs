@@ -21,8 +21,13 @@ ioPrimitives =
     ("read-all", readAll),
     ("print", printobj),
     ("display", printobj),
+    ("write-char", printobj),
     ("println", println),
-    ("newline", newline)]
+    ("newline", newline),
+    -- Port testing
+    ("output-port?", isOutputPort),
+    ("input-port?", isInputPort),
+    ("port?", isPort)]
 
 
 
@@ -89,3 +94,17 @@ loadHelper filename = do
 readAll :: [LispVal] -> IOThrowsError LispVal
 readAll [String filename] = liftM List $ loadHelper filename
 
+isOutputPort :: [LispVal] -> IOThrowsError LispVal
+isOutputPort [Port x] = liftIO $ hIsWritable x >>= (return  . Bool)
+isOutputPort [notPort] = throwError $ TypeMismatch "<IO port>" notPort
+isOutputPort badArgList = throwError $ NumArgs 1 badArgList
+
+isInputPort :: [LispVal] -> IOThrowsError LispVal
+isInputPort [Port x] = liftIO $ hIsReadable x >>= (return  . Bool)
+isInputPort [notPort] = throwError $ TypeMismatch "<IO port>" notPort
+isInputPort badArgList = throwError $ NumArgs 1 badArgList
+
+isPort :: [LispVal] -> IOThrowsError LispVal
+isPort [Port x] = return $ Bool True
+isPort [_] = return $ Bool False
+isPort badArgList = throwError $ NumArgs 1 badArgList

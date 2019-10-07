@@ -502,7 +502,7 @@ toExact [Complex x] =
         then toExact [Ratio (toRational (realPart x))]
         else throwError $ TypeMismatch "exact complex" $ Complex x
 toExact [notNum] = throwError $ TypeMismatch "number" notNum
-toExact badArgList = throwError $ NumArgs 2 badArgList
+toExact badArgList = throwError $ NumArgs 1 badArgList
 
 toInexact :: [LispVal] -> ThrowsError LispVal
 toInexact [Number x] = return $ Float $ fromInteger x
@@ -513,4 +513,4 @@ toInexact [Complex x] =
         then return $ Float $ realPart x
         else return $ Complex x
 toInexact [notNum] = throwError $ TypeMismatch "number" notNum
-toInexact badArgList = throwError $ NumArgs 2 badArgList
+toInexact badArgList = throwError $ NumArgs 1 badArgList

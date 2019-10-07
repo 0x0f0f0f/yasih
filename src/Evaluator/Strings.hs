@@ -24,6 +24,7 @@ stringPrimitives =
     ("string-ci<=?", ciStrBoolBinop (<=)),
     ("string-ci>=?", ciStrBoolBinop (>=)),
     ("string-length", stringLength), -- String procedures
+    ("string-append", stringAppend),
     ("string?", unaryOp stringp), -- String predicates
     ("string-null?", stringNull)]
 
@@ -83,3 +84,10 @@ stringToNum [String x] = case readExpr x of
 stringToNum [x] = throwError $ TypeMismatch "string" x
 stringToNum badArglist = throwError $ NumArgs 1 badArglist
 
+-- | Append several strings together
+stringAppend :: [LispVal] -> ThrowsError LispVal
+stringAppend [] = return $ String ""
+stringAppend [String a] = return $ String a
+stringAppend (String a : (String b : xs)) = stringAppend (String (a++b) : xs)
+stringAppend (String a : (notStr : xs)) = throwError $ TypeMismatch "string" notStr
+stringAppend (notStr : xs) = throwError $ TypeMismatch "string" notStr
