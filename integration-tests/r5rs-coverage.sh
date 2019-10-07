@@ -227,8 +227,9 @@ t "list" "(lambda ( . objs) ...)"
 
 cover "List Selection"
 t "length" "(lambda (lst) ...)"
-p "list-ref" 
-p "list-tail" 
+p "list-ref"
+p "list-tail"
+p "list-head" 
 
 cover "List Predicates"
 p "list?"
