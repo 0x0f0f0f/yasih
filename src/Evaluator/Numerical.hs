@@ -408,9 +408,9 @@ sciExp badArgList = throwError $ NumArgs 1 badArgList
 -- | Return x to the power of y
 sciExpt [x, y] = numCast [x, y] >>= go
     where 
-        go (List [Number x, Number y])      = return $ Number $ round $ (fromInteger x) ** (fromInteger y) 
+        go (List [Number x, Number y])      = return $ Number $ round $ fromInteger x ** fromInteger y 
         go (List [Float x, Float y])        = return $ Float $ x ** y
-        go (List [Ratio x, Ratio y])        = return $ Float $ (fromRational x) ** (fromRational y)
+        go (List [Ratio x, Ratio y])        = return $ Float $ fromRational x ** fromRational y
         go (List [Complex x, Complex y])    = return $ Complex $ x ** y
         go _ = throwError $ Default "unexpected error in (-)"
 sciExpt badArgList = throwError $ NumArgs 2 badArgList
