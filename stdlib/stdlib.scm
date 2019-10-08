@@ -155,3 +155,6 @@
 
 ; string constructors
 (define (list->string lst) (apply string lst))
+
+; extract char number k from string
+(define (string-ref str k) (list-ref (string->list str) k))

@@ -150,7 +150,7 @@ p "string-append"
 cover "String Selection"
 p "string-copy"
 p "string-length"
-p "string-ref"
+t "string-ref" "(lambda (str k) ...)"
 p "substring"
 
 cover "String Modification"
