@@ -10,23 +10,23 @@ declare -i tests_failed=0
 INTERPRETER_NAME="yasih -e"
 
 # Check if the interpreter is in path
-command -v $INTERPRETER_NAME || { echo "Could not find $INTERPRETER_NAME in \$PATH"; exit 1; }
+command -v "$(echo "$INTERPRETER_NAME" | cut -d " " -f1 )" || { echo "Could not find $INTERPRETER_NAME in \$PATH"; exit 1; }
 
 # describe function
 # Sets the current test context
-function describe { this="$1"; printf "\nTESTING $this\n"; } 
+function describe { this="$1"; printf "\nTESTING %s\n" "$this"; }
 
 # Display what test failed on ERR
 trap 'printf "$0: exit code $? on line $LINENO\nFAIL: $this\n"; exit 1' ERR
 
 # Assertion function
 function assert {
-    let tests_run+=1
-    [ "$1" == "$2" ] && { echo -n "."; let tests_passed+=1; return; }
-    [ -z "$SILENT" ] && printf "\nFAIL: $this\ngot '$1' but expected '$2'\n" || echo -n "f"
-    let tests_failed+=1
+    (( tests_run+=1 ))
+    [ "$1" == "$2" ] && { echo -n "."; (( tests_passed+=1 )); return; }
+    [ -z "$SILENT" ] && printf "\n%s FAIL: \ngot '%s' but expected '%s'\n" "$this" "$1" "$2"|| echo -n "f"
+    (( tests_failed+=1 ))
 }
 
 function t {
-    assert "`$INTERPRETER_NAME \"$1\"`" "$2"
+    assert "$($INTERPRETER_NAME "$1")" "$2"
 }
