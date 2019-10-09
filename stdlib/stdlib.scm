@@ -1,3 +1,6 @@
+; 50 ciphers of pi
+(define pi 3.14159265358979323846264338327950288419716939937510)
+
 ; boolean negation
 (define (not x)
     (if x #f #t))
@@ -8,6 +11,9 @@
 
 ; list constructor using varargs
 (define (list . objs) objs)
+
+; vector constructor using varargs
+(define (vector . objs) (list->vector objs))
 
 ; identity function
 (define (id obj) obj)
@@ -149,3 +155,6 @@
 
 ; string constructors
 (define (list->string lst) (apply string lst))
+
+; extract char number k from string
+(define (string-ref str k) (list-ref (string->list str) k))

@@ -63,15 +63,20 @@ numericalPrimitives =
     ("magnitude", cMagnitude),
     ("make-polar", cMakePolar),
 --    ("make-rectangular", cMakeRectangular),
+    -- Exactness
+    ("exact?", unaryOp exactp),
+    ("inexact?", unaryOp inexactp),
+    ("inexact->exact", toExact),
+    ("exact->inexact", toInexact),
     -- Type testing functions
     ("number?", unaryOp numberp),
     ("integer?", unaryOp integerp),
-    ("float?", unaryOp floatp),
-    ("ratio?", unaryOp ratiop),
+    ("real?", unaryOp floatp),
+    ("rational?", unaryOp ratiop),
     ("complex?", unaryOp complexp)]
 
 -- |Type testing functions
-numberp, integerp, floatp, ratiop, complexp :: LispVal -> LispVal
+numberp, integerp, floatp, ratiop, complexp, exactp, inexactp :: LispVal -> LispVal
 integerp (Number _)     = Bool True
 integerp _              = Bool False
 numberp (Number _)      = Bool True
@@ -85,6 +90,16 @@ ratiop (Ratio _)        = Bool True
 ratiop _                = Bool False
 complexp (Complex _)    = Bool True
 complexp _              = Bool False
+exactp (Complex c)
+    | imagPart c == 0   = Bool True
+    | otherwise         = Bool False
+exactp (Float _)        = Bool False
+exactp (Number _)       = Bool True
+exactp (Ratio _)        = Bool True
+exactp _                = Bool False
+inexactp x = case exactp x of
+    Bool True -> Bool False
+    Bool False -> Bool True
 
 -- |Absolute value
 numAbs :: [LispVal] -> ThrowsError LispVal
@@ -408,9 +423,9 @@ sciExp badArgList = throwError $ NumArgs 1 badArgList
 -- | Return x to the power of y
 sciExpt [x, y] = numCast [x, y] >>= go
     where 
-        go (List [Number x, Number y])      = return $ Number $ round $ (fromInteger x) ** (fromInteger y) 
+        go (List [Number x, Number y])      = return $ Number $ round $ fromInteger x ** fromInteger y
         go (List [Float x, Float y])        = return $ Float $ x ** y
-        go (List [Ratio x, Ratio y])        = return $ Float $ (fromRational x) ** (fromRational y)
+        go (List [Ratio x, Ratio y])        = return $ Float $ fromRational x ** fromRational y
         go (List [Complex x, Complex y])    = return $ Complex $ x ** y
         go _ = throwError $ Default "unexpected error in (-)"
 sciExpt badArgList = throwError $ NumArgs 2 badArgList
@@ -473,3 +488,29 @@ cMagnitude [Ratio x] = return $ Float $ fromRational x
 cMagnitude [Complex x] = return $ Float $ magnitude x
 cMagnitude [notnum] = throwError $ TypeMismatch "number" notnum
 cMagnitude badArgList = throwError $ NumArgs 1 badArgList
+
+-- Exactness conversion
+toExact :: [LispVal] -> ThrowsError LispVal
+toExact [x@(Number _)] = return x
+toExact [Ratio x] =
+    if denominator x == 1
+        then return $ Number $ numerator x
+        else return $ Ratio x
+toExact [Float x] = toExact [Ratio (toRational x)]
+toExact [Complex x] =
+    if imagPart x == 0
+        then toExact [Ratio (toRational (realPart x))]
+        else throwError $ TypeMismatch "exact complex" $ Complex x
+toExact [notNum] = throwError $ TypeMismatch "number" notNum
+toExact badArgList = throwError $ NumArgs 1 badArgList
+
+toInexact :: [LispVal] -> ThrowsError LispVal
+toInexact [Number x] = return $ Float $ fromInteger x
+toInexact [Ratio x] = return $ Float $ fromRational x
+toInexact [x@(Float _)] = return x
+toInexact [Complex x] =
+    if imagPart x == 0
+        then return $ Float $ realPart x
+        else return $ Complex x
+toInexact [notNum] = throwError $ TypeMismatch "number" notNum
+toInexact badArgList = throwError $ NumArgs 1 badArgList

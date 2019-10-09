@@ -10,9 +10,8 @@ import Data.Array
 import Data.IORef
 import Numeric
 
-
-import Text.Parsec.Char hiding (spaces)
-import Text.ParserCombinators.Parsec hiding (spaces)
+import Text.Parsec.Char
+import Text.ParserCombinators.Parsec
 
 -- |Parse an expression
 -- Parse and evaluate a LispVal returning a monadic value
@@ -38,10 +37,8 @@ readExprList = readOrThrow $ many1 mainParser
 mainParser :: Parser LispVal
 mainParser = do
     skipMany whitespace
-    skipMany parseComment
     result <- parseExpr
     skipMany whitespace
-    skipMany parseComment
     return result
 
 -- |Parser that recognizes one of the symbols allowed in Scheme Ident.
@@ -49,7 +46,7 @@ symbol :: Parser Char
 symbol = oneOf "!$%&|*/+-:<=?>@^_~"
 
 whitespace :: Parser ()
-whitespace = skipMany1 (space <|> tab)
+whitespace =  void (void (try (space <|> tab)) <|> try parseComment)
 
 tokenize :: Parser a -> Parser a
 tokenize = (whitespace >>)
@@ -238,17 +235,17 @@ parseExpr = try parseComplex
 
 -- |Parse a List of Atoms like a b c d
 parseList :: Parser LispVal
-parseList = List <$> sepEndBy parseExpr spaces
+parseList = List <$> sepEndBy parseExpr (skipMany1 whitespace)
 
 -- |Parse a Dotted list (a b c . d)
 parseDottedList :: Parser LispVal
 parseDottedList = do
     -- Parse a List of 0 or more expressions
-    -- Separated by spaces
-    head <- endBy parseExpr spaces
+    -- Separated by whitespace
+    head <- endBy parseExpr (skipMany1 whitespace)
     -- Then parse the remaining Expr after the dot
-    tail <- char '.' >> spaces >> parseExpr
-    skipMany spaces
+    tail <- char '.' >> skipMany whitespace >> parseExpr
+    skipMany whitespace
     return $ DottedList head tail
 
 -- |Parse a Quoted Expression 'a
@@ -287,7 +284,7 @@ parseVector :: Parser LispVal
 parseVector = do
     string "#("
     skipMany space
-    vals <- sepEndBy parseExpr spaces
+    vals <- sepEndBy parseExpr whitespace
     char ')'
     return $
         Vector $ listArray (0, length vals -1) vals
@@ -295,4 +292,6 @@ parseVector = do
 -- |Parse a comment like
 -- ; this is a lisp comment
 parseComment :: Parser ()
-parseComment = void (try (char ';') >> manyTill anyChar (void (char '\n') <|> eof))
+parseComment =
+    void (try (char ';') >> manyTill anyChar (void (char '\n') <|> eof))
+    <|> void (try (string "#|") >> manyTill anyChar (void (string "|#")))

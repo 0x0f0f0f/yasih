@@ -12,6 +12,10 @@ listPrimitives =
     [("car", car),
     ("cdr", cdr),
     ("cons", cons),
+    -- List selection
+    ("list-ref", listRef),
+    ("list-tail", listTail),
+    ("list-head", listHead),
     -- Type testing functions
     ("list?", unaryOp listp),
     ("vector?", unaryOp vectorp)]
@@ -48,3 +52,33 @@ cons [x, DottedList xs xlast] =
 cons [x, y] = return $ DottedList [x] y
 cons badArgList = throwError $ NumArgs 2 badArgList
 
+
+-- |Return the contents of position k of vector. k must be a valid index of vector.
+listRef :: [LispVal] -> ThrowsError LispVal
+listRef [List x, Number n] =
+    let k = fromInteger n in
+        if 0 <= k && k <= length x then return $ x !! k
+        else throwError $ Default $ "index " ++ show k ++ " is out of bounds"
+listRef [List x, notNum]    = throwError $ TypeMismatch "number" notNum
+listRef [notVect]           = throwError $ TypeMismatch "vector" notVect
+listRef badArgList          = throwError $ NumArgs 1 badArgList
+
+-- | Return the "tail" of lst beginning with its kth element.
+listTail :: [LispVal] -> ThrowsError LispVal
+listTail [List lst, Number n] =
+    let k = fromInteger n in
+        if 0 <= k && k <= length lst then return $ List $ drop k lst
+        else throwError $ Default $ "index " ++ show k ++ " is out of bounds"
+listTail [List lst, notNum]  = throwError $ TypeMismatch "number" notNum
+listTail [notVect]           = throwError $ TypeMismatch "vector" notVect
+listTail badArgList          = throwError $ NumArgs 1 badArgList
+
+-- | Return the first k elements of lst .
+listHead :: [LispVal] -> ThrowsError LispVal
+listHead [List lst, Number n] =
+    let k = fromInteger n in
+        if 0 <= k && k <= length lst then return $ List $ take k lst
+        else throwError $ Default $ "index " ++ show k ++ " is out of bounds"
+listHead [List lst, notNum]  = throwError $ TypeMismatch "number" notNum
+listHead [notVect]           = throwError $ TypeMismatch "vector" notVect
+listHead badArgList          = throwError $ NumArgs 1 badArgList

@@ -37,14 +37,16 @@ evalAndPrint env expr = evalString env expr >>= putStrLn
 -- value. replLoop takes a predicate that signals when to stop, an action to
 -- perform before the test and a function that returns an action to apply to
 -- the input.
+-- #TODO move parsing logic to parser!
 replLoop :: Monad m => m String -> (String -> m ()) -> m ()
 replLoop prompt action = do
     result <- prompt
-    if ";" `isPrefixOf` dropWhile isSpace result then replLoop prompt action 
-    else case result of
+    case dropWhile isSpace result of
         "quit" -> return ()
         "exit" -> return ()
+        ';' : xs -> replLoop prompt action
         "" -> replLoop prompt action
+        '#' : '|' : xs : '|' : '#' : ys -> replLoop (return ys) action
         _ -> action result >> replLoop prompt action
     
 -- |Try to load the standard library from an include path list
