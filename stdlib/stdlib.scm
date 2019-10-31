@@ -1,3 +1,22 @@
+; MACROS
+(define (do . forms)
+    (last forms))
+
+(define (begin . forms)
+    (last forms))
+
+(define (bind-vars bindings)
+    (map car bindings))
+
+(define (bind-vals bindings)
+    (map cadr bindings))
+
+(define-syntax (let bindings body)
+    `((lambda ,(bind-vars bindings) body) ,(bind-vals bindings)))
+
+(define (printenv) ; pretty-print the current lexical environment
+    (map println (env)))
+
 ; 50 ciphers of pi
 (define pi 3.14159265358979323846264338327950288419716939937510)
 
@@ -94,7 +113,7 @@
 
 ; map a function over a list
 (define (map f lst)
-    (foldr (lambda (x y) (cons (f x) y))) '() lst)
+    (foldr (lambda (x y) (cons (f x) y)) '() lst))
 
 ; filter a list with a predicate. return a list
 ; composed only of the elements that satisfy pred

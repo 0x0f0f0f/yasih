@@ -3,9 +3,12 @@
 - [ ] Basic Unit Test Suite
 - [ ] Multi line parsing in REPL
 - [ ] Implement the full [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
-- [ ] Quasiquotation
 - [ ] ~~begin~~ while and do blocks
 - [ ] Correct Char parsing (extra characters)
+- [ ] String interpolation
+- [ ] Stack traces
+- [X] Macro expander
+- [X] Quasiquotation
 - [X] Throw error when redefining a reserved keyword
 - [X] Standard Library (Chapter 10)
 - [X] Add let statement

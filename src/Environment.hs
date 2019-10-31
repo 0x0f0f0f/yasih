@@ -91,9 +91,17 @@ bindVars envRef bindings =
             newVal <- newIORef value
             return (var, newVal)
 
+-- |Get the current lexical environment
+getVars :: Env -> IOThrowsError [(String, LispVal)]
+getVars envRef = do
+    env <- liftIO $ readIORef envRef
+    let vars = map fst env
+    vals <- traverse (getVar envRef) vars
+    return $ zip vars vals
 
 -- |Helper functions to create function objects in IOThrowsError monad
-makeFunc :: Maybe String -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
-makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
-makeNormalFunc = makeFunc Nothing
-makeVarargs = makeFunc . Just . showVal
+makeFunc :: Bool -> Maybe String -> Env -> [LispVal] -> [LispVal] -> IOThrowsError LispVal
+makeFunc isMacro varargs env params body = return $ Func isMacro (map showVal params) varargs body env
+makeNormalFunc = makeFunc False Nothing
+makeVarargs = makeFunc False . Just . showVal
+makeMacro = makeFunc True Nothing

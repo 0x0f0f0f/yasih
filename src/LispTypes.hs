@@ -29,6 +29,7 @@ data LispVal = Atom String -- Simple Types
     | PrimitiveFunc ([LispVal] -> ThrowsError LispVal)
     -- Generalized function type
     | Func {
+        isMacro :: Bool,
         params :: [String], -- Parameters name
         vararg :: Maybe String, -- name of a variable-length argument list
         body :: [LispVal], -- list of expressions

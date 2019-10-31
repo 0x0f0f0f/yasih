@@ -45,8 +45,14 @@ eval env (List [Atom "quote", val]) = return val
 -- Get a variable
 eval env (Atom id) = getVar env id
 
+-- Access the current lexical environment
+eval env (List [Atom "env"]) = do
+    vars <- getVars env
+    return $ List $ map toPair vars
+    where toPair (var, val) = List [Atom var, val]
+
 -- | load a file and evaluate its contents. A special form
--- is used because apply does not accept an env binding but 
+-- is used because apply does not accept an env binding but
 -- statements in the loaded file can affect the top level environment
 -- #TODO Fix double evaluation
 eval env (List [Atom "load", String filename]) = do
@@ -62,24 +68,39 @@ eval env (List [Atom "set!", Atom var, form]) =
 -- #TODO move to an hygienic macro
 -- Let statement, let over lambda
 -- (let ((a 1) (b 2)) body) => ((lambda (a b) body) 1 2)
-eval env (List (Atom "let" : List bndlst : body)) = do
-    mapM_ validateBindings bndlst
-    lambda <- makeNormalFunc env (map getParam bndlst) body
-    apply lambda $ map getArg bndlst
-    where
-        validateBindings :: LispVal -> IOThrowsError ()
-        validateBindings (List [Atom var, value]) = return ()
-        validateBindings badArg = throwError $ BadSpecialForm "Ill-formed let expression" badArg
-        getParam, getArg :: LispVal -> LispVal 
-        getParam (List b) = head b
-        getArg (List b) = (head . tail) b 
+-- eval env (List (Atom "let" : List bndlst : body)) = do
+--     mapM_ validateBindings bndlst
+--     lambda <- makeNormalFunc env (map getParam bndlst) body
+--     apply lambda $ map getArg bndlst
+--     where
+--         validateBindings :: LispVal -> IOThrowsError ()
+--         validateBindings (List [Atom var, value]) = return ()
+--         validateBindings badArg = throwError $ BadSpecialForm "Ill-formed let expression" badArg
+--         getParam, getArg :: LispVal -> LispVal
+--         getParam (List b) = head b
+--         getArg (List b) = (head . tail) b 
 
 -- Define a variable
 eval env (List [Atom "define", Atom var, form]) =
     checkReserved var >>
     eval env form >>= defineVar env var
 
-    
+-- Define a macro
+eval env (List (Atom "define-syntax" : List (Atom var : params) : body)) =
+    makeMacro env params body >>= defineVar env var
+
+-- Evaluate quasiquotation. AKA macro expander.
+-- Recursively evaluate unquote forms, or just return the items if not unquoted
+eval env (List [Atom "quasiquote", form]) =
+    evalUnquotes form
+    where evalUnquotes form =
+            case form of
+                List [Atom "unquote", form] -> eval env form
+                List items -> do
+                    results <- traverse evalUnquotes items
+                    return $ List results
+                _ -> return form
+
 -- Define a function
 -- (define (f x y) (+ x y)) => (lamda ("x" "y") ...)
 eval env (List (Atom "define" : List (Atom var : params) : body)) = 
@@ -175,8 +196,10 @@ eval env form@(List (Atom "case" : (key : clauses))) = if null clauses
 -- Run eval recursively over args then apply func over the resulting list
 eval env (List (function : args)) = do
     func <- eval env function
-    argVals <- mapM (eval env) args
-    apply func argVals
+    case func of
+        Func {isMacro = True} -> apply func args >>= eval env
+        _ -> mapM (eval env) args >>= apply func
+
 
 -- Bad form clause
 eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badForm
@@ -188,7 +211,7 @@ eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badFo
 apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
 apply (PrimitiveFunc func) args = liftThrows $ func args 
 apply (IOFunc func) args = func args 
-apply (Func params varargs body closure) args 
+apply (Func isMacro params varargs body closure) args
     -- Throw error if argument number is wrong
     | num params /= num args && isNothing varargs = throwError $ NumArgs (num params) args
     -- Bind arguments to a new env and execute statements
@@ -218,7 +241,6 @@ primitiveBindings = nullEnv >>=
 -- |Primitive functions table
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 primitives = 
-    ("begin", beginBlock) :
     numericalPrimitives ++
     charPrimitives ++
     stringPrimitives ++
@@ -227,11 +249,6 @@ primitives =
     listPrimitives ++
     equivalencePrimitives ++
     vectorPrimitives
-
--- |A begin block evaluates a list of statements and returns the value of the last one
-beginBlock :: [LispVal] -> ThrowsError LispVal
-beginBlock [x] = return x
-beginBlock (x:xs) = beginBlock xs
 
 ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
 ioPrimitives = ("apply", applyProc) : Evaluator.IO.ioPrimitives

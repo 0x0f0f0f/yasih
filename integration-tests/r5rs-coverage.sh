@@ -231,6 +231,8 @@ t "length" "(lambda (lst) ...)"
 p "list-ref"
 p "list-tail"
 p "list-head"
+p "last"
+p "first"
 
 cover "List Predicates"
 p "list?"

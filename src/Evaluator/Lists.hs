@@ -16,6 +16,7 @@ listPrimitives =
     ("list-ref", listRef),
     ("list-tail", listTail),
     ("list-head", listHead),
+    ("last", lastBlock),
     -- Type testing functions
     ("list?", unaryOp listp),
     ("vector?", unaryOp vectorp)]
@@ -82,3 +83,8 @@ listHead [List lst, Number n] =
 listHead [List lst, notNum]  = throwError $ TypeMismatch "number" notNum
 listHead [notVect]           = throwError $ TypeMismatch "vector" notVect
 listHead badArgList          = throwError $ NumArgs 1 badArgList
+
+-- |A last statement returns the last value of a list
+lastBlock :: [LispVal] -> ThrowsError LispVal
+lastBlock [x] = return x
+lastBlock (x:xs) = lastBlock xs
