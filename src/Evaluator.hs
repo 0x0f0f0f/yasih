@@ -78,7 +78,7 @@ eval env (List [Atom "set!", Atom var, form]) =
 --         validateBindings badArg = throwError $ BadSpecialForm "Ill-formed let expression" badArg
 --         getParam, getArg :: LispVal -> LispVal
 --         getParam (List b) = head b
---         getArg (List b) = (head . tail) b 
+--         getArg (List b) = (head . tail) b
 
 -- Define a variable
 eval env (List [Atom "define", Atom var, form]) =
@@ -103,21 +103,21 @@ eval env (List [Atom "quasiquote", form]) =
 
 -- Define a function
 -- (define (f x y) (+ x y)) => (lamda ("x" "y") ...)
-eval env (List (Atom "define" : List (Atom var : params) : body)) = 
+eval env (List (Atom "define" : List (Atom var : params) : body)) =
     checkReserved var >>
     makeNormalFunc env params body >>= defineVar env var
 
 
 -- Define a variable argument function
 -- (define (func a b) c . body)
-eval env (List (Atom "define" : DottedList (Atom var : params)  varargs : body)) = 
+eval env (List (Atom "define" : DottedList (Atom var : params)  varargs : body)) =
     checkReserved var >>
     makeVarargs varargs env params body >>= defineVar env var
 
 -- λλλ Lambda functions! λλλ
 -- (lambda (a b c) (+ a b c))
 eval env (List (Atom "lambda" : List params : body)) =
-    makeNormalFunc env params body 
+    makeNormalFunc env params body
 
 -- (lambda (a b c . d) body)
 eval env (List (Atom "lambda" : DottedList params varargs: body)) =
@@ -129,22 +129,22 @@ eval env (List (Atom "lambda" : varargs@(Atom _) : body)) =
 
 
 -- If-clause. #f is false and any other value is considered true
-eval env (List [Atom "if", pred, conseq, alt]) = do 
-    result <- eval env pred 
+eval env (List [Atom "if", pred, conseq, alt]) = do
+    result <- eval env pred
     -- Evaluate pred, if it is false eval alt, if true eval conseq
-    case result of 
-        Bool False -> eval env alt 
+    case result of
+        Bool False -> eval env alt
         Bool True -> eval env conseq
-        badArg -> throwError $ TypeMismatch "boolean" badArg 
+        badArg -> throwError $ TypeMismatch "boolean" badArg
 
 -- If-clause without an else
-eval env (List [Atom "if", pred, conseq]) = do 
-    result <- eval env pred 
+eval env (List [Atom "if", pred, conseq]) = do
+    result <- eval env pred
     -- Evaluate pred, if it is false eval alt, if true eval conseq
-    case result of 
+    case result of
         Bool False -> return $ List []
         Bool True -> eval env conseq
-        badArg -> throwError $ TypeMismatch "boolean" badArg 
+        badArg -> throwError $ TypeMismatch "boolean" badArg
 
 
 -- cond clause: test each one of the alts clauses and eval the first
@@ -153,16 +153,16 @@ eval env (List [Atom "if", pred, conseq]) = do
 -- Evaluates to the atom greater.
 -- see https://schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.1
 eval env form@(List (Atom "cond" : clauses)) = if null clauses
-    then throwError $ BadSpecialForm "No true clause in cond expression" form 
+    then throwError $ BadSpecialForm "No true clause in cond expression" form
     else case head clauses of
-        List (Atom "else" : exprs) -> 
-            if null exprs then return $ List [] 
+        List (Atom "else" : exprs) ->
+            if null exprs then return $ List []
             else mapM (eval env) exprs >>= liftThrows . return . last
         -- Piggy back the evaluation of the clauses on the already
         -- Existing if clause.
         List [test, expr] -> eval env $ List [Atom "if", test, expr,
-            -- If test is not true, recurse the evaluation of 
-            -- cond on the remaining clauses 
+            -- If test is not true, recurse the evaluation of
+            -- cond on the remaining clauses
             List (Atom "cond" : tail clauses)]
         _ -> throwError $ BadSpecialForm "Ill-formed clause in cond expression" form
 
@@ -171,22 +171,22 @@ eval env form@(List (Atom "cond" : clauses)) = if null clauses
 -- Evaluate a key expression and iterate over ((<datum1>, ...) expr) clauses
 -- To check if the key value appears at least once in the datums list.
 -- If so, evaluate that clause.
--- Example: 
+-- Example:
 -- (case (* 2 3)
 --   ((2 3 5 7) 'prime)
 --   ((1 4 6 8 9) 'composite))             ===>  composite
 eval env form@(List (Atom "case" : (key : clauses))) = if null clauses
     then throwError $ BadSpecialForm "No true clause in case expression" form
     else case head clauses of
-        List (Atom "else" : exprs) -> 
-            if null exprs then return $ List [] 
+        List (Atom "else" : exprs) ->
+            if null exprs then return $ List []
             else mapM (eval env) exprs >>= liftThrows . return . last
-        List (List datums : exprs) -> do 
+        List (List datums : exprs) -> do
             keyValue <- eval env key -- Evaluate the key
             -- Iterate over datums to check for an equal one
             equality <- mapM (\x -> liftThrows (eqv [keyValue, x])) datums
             if Bool True `elem` equality
-                then if null exprs then return $ List [] 
+                then if null exprs then return $ List []
                     else mapM (eval env) exprs >>= liftThrows . return . last
                 else eval env $ List (Atom "case" : key : tail clauses)
         _ -> throwError $ BadSpecialForm "Ill-formed clause in case expression" form
@@ -206,18 +206,18 @@ eval env badForm = throwError $ BadSpecialForm "Unrecognized special form" badFo
 
 -- |Apply a function defined in a primitives table
 -- apply func args
--- Look for func into the primitives table then return 
+-- Look for func into the primitives table then return
 -- the corresponding function if found, otherwise throw an error
 apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
-apply (PrimitiveFunc func) args = liftThrows $ func args 
-apply (IOFunc func) args = func args 
+apply (PrimitiveFunc func) args = liftThrows $ func args
+apply (IOFunc func) args = func args
 apply (Func isMacro params varargs body closure) args
     -- Throw error if argument number is wrong
     | num params /= num args && isNothing varargs = throwError $ NumArgs (num params) args
     -- Bind arguments to a new env and execute statements
     -- Zip together parameter names and already evaluated args
-    -- together into a list of pairs, then create 
-    -- a new environment for the function closure 
+    -- together into a list of pairs, then create
+    -- a new environment for the function closure
     | otherwise = liftIO (bindVars closure $ zip params args)
         >>= bindVarArgs varargs >>= evalBody
     where
@@ -233,14 +233,14 @@ apply badForm args = throwError $ NotFunction "Not a function: " $ show badForm
 
 -- |Take an initial null environment, make name/value pairs and bind
 -- primitives into the new environment
-primitiveBindings :: IO Env 
-primitiveBindings = nullEnv >>= 
+primitiveBindings :: IO Env
+primitiveBindings = nullEnv >>=
     flip bindVars (map (makeFunc IOFunc) Evaluator.ioPrimitives ++ map (makeFunc PrimitiveFunc) primitives)
     where makeFunc constructor (var, func) = (var, constructor func)
 
 -- |Primitive functions table
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
-primitives = 
+primitives =
     numericalPrimitives ++
     charPrimitives ++
     stringPrimitives ++

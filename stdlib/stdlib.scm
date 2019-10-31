@@ -34,14 +34,14 @@
 (define (begin . forms)
     (last forms))
 
-(define (bind-vars bindings)
-    (map car bindings))
+(define-syntax (bind-vars bindings)
+    `(map car bindings))
 
-(define (bind-vals bindings)
-    (map cadr bindings))
+(define-syntax (bind-vals bindings)
+    `(map cadr bindings))
 
 (define-syntax (let bindings body)
-    `((lambda ,(bind-vars bindings) body) ,(bind-vals bindings)))
+    `(apply (lambda ,(bind-vars bindings) ,body) ',(bind-vals bindings)))
 
 (define (printenv) ; pretty-print the current lexical environment
     (map println (env)))
