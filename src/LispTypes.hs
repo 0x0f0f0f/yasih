@@ -13,7 +13,7 @@ import System.IO
 -- Env is a stateful variable (IORef) that holds a map of strings -> IORef LispVal
 type Env = IORef[(String, IORef LispVal)]
 
--- |Lisp Atom data type
+-- |Lisp Value data type
 data LispVal = Atom String -- Simple Types
     | Number Integer
     | Float Double

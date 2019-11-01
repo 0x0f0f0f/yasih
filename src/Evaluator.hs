@@ -54,31 +54,15 @@ eval env (List [Atom "env"]) = do
 -- | load a file and evaluate its contents. A special form
 -- is used because apply does not accept an env binding but
 -- statements in the loaded file can affect the top level environment
--- #TODO Fix double evaluation
 eval env (List [Atom "load", String filename]) = do
     loadedFile <- loadHelper filename
     if null loadedFile then return $ List []
-    else loadHelper filename >>= liftM last . mapM (eval env)
+    else (liftM last . mapM (eval env)) loadedFile
 
 -- Set a variable
 eval env (List [Atom "set!", Atom var, form]) =
     checkReserved var >>
     eval env form >>= setVar env var
-
--- #TODO move to an hygienic macro
--- Let statement, let over lambda
--- (let ((a 1) (b 2)) body) => ((lambda (a b) body) 1 2)
--- eval env (List (Atom "let" : List bndlst : body)) = do
---     mapM_ validateBindings bndlst
---     lambda <- makeNormalFunc env (map getParam bndlst) body
---     apply lambda $ map getArg bndlst
---     where
---         validateBindings :: LispVal -> IOThrowsError ()
---         validateBindings (List [Atom var, value]) = return ()
---         validateBindings badArg = throwError $ BadSpecialForm "Ill-formed let expression" badArg
---         getParam, getArg :: LispVal -> LispVal
---         getParam (List b) = head b
---         getArg (List b) = (head . tail) b
 
 -- Define a variable
 eval env (List [Atom "define", Atom var, form]) =

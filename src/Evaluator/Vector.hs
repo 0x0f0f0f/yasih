@@ -63,7 +63,7 @@ vectorRef [notVect]             = throwError $ TypeMismatch "vector" notVect
 vectorRef badArgList            = throwError $ NumArgs 1 badArgList
 
 
-{-- |Return the contents of position k of vector. k must be a valid index of vector.
+{-- |Set the contents at position k of vector. k must be a valid index of vector.
 vectorSet :: [LispVal] -> ThrowsError LispVal
 vectorSet [Vector x, Number n, obj] =
     let k = fromInteger n in

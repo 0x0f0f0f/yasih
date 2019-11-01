@@ -44,6 +44,11 @@ rlwrap yasih
 λ> (map (lambda (x) (+ 1 x)) '(1 2 3 4))
 (2 3 4 5)
 ```
+
+# Documentation
+
+Check out the docs
+
 # Examples
 
 To try the examples in the `examples` directory run:

@@ -216,7 +216,7 @@ parseCharacter = do
         "newline" -> '\n'
         _ -> head value
 
--- |Parse an Expression (Either a String, a number or an Atom)
+-- |Parse an Expression
 parseExpr :: Parser LispVal
 parseExpr = try parseComplex
         <|> try parseRatio
