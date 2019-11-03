@@ -31,7 +31,10 @@ library:
   source-dirs: src
   exposed-modules:
     - Yasih
-    - Yasih.LispRepl
+    - Yasih.LispParser
+    - Yasih.LispTypes
+    - Yasih.Evaluator
+    - Yasih.Environment
 
 executables:
   yasih:
@@ -45,9 +48,11 @@ executables:
     - yasih
 
 tests:
-  r5rs-test:
-    main:                R5rsTest.hs
-    source-dirs:         test
+  spec-test:
+    main:                Spec.hs
+    source-dirs:
+      - src
+      - test
     ghc-options:
     - -threaded
     - -rtsopts

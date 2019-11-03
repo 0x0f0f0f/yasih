@@ -24,6 +24,7 @@ runIOThrows :: IOThrowsError String -> IO String
 runIOThrows action = runExceptT (trapError action)
     >>= return . extractValue
 
+
 -- Environment Handling
 
 -- |Check if a variable is bound in an environment

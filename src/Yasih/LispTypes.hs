@@ -40,6 +40,7 @@ data LispVal = Atom String -- Simple Types
 
 -- Defining Equality methods for LispVal
 instance Eq LispVal where
+    (==) (Atom x)           (Atom y)  = x == y
     (==) (Number x)         (Number y)  = x == y
     (==) (Float x)          (Float y)   = x == y
     (==) (String x)         (String y)  = x == y
@@ -149,6 +150,7 @@ data LispError = NumArgs Integer [LispVal]
     | UnboundVar String String
     | ReservedKeyword String
     | Default String
+    deriving Eq
 
 -- Make LispError an instance of Show
 showError :: LispError -> String
@@ -177,7 +179,7 @@ instance Show LispError where show = showError
 type ThrowsError = Either LispError
 
 -- Needs an Error Monad to handle errors like unbound variables
--- ErrorT is a monad transformer that layers error handling on top of IO
+-- ExceptT is a monad transformer that layers error handling on top of IO
 -- May contain IO actions and throws a LispError
 -- Curried type constructor that still accepts an argument: return type of the function
 type IOThrowsError = ExceptT LispError IO

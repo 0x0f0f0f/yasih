@@ -1,6 +1,6 @@
 module Main where
 
-import Yasih.LispRepl
+import Yasih
 
 import Control.Monad
 import System.IO
@@ -32,11 +32,12 @@ main = do
 
     -- mapM_ putStrLn epaths
 
-    args <- getArgs 
+    args <- getArgs
     case args of 
         [] -> runRepl epaths -- No argument is passed => run the REPL
-        [filename] -> runProgram epaths args
-        ["-e", expr] -> runOneExpr epaths expr
+        ["-e", expr] -> runOne epaths expr              -- Run a single expression
+        ("-s" : rest) -> runProgram epaths rest True -- Run the program and show evaluation result
+        [filename] -> runProgram epaths args False      -- Just run the program
         _ -> do
             hPutStrLn stderr "Usage: yasih [EXPR]"
             hPutStrLn stderr "If EXPR is provided evaluate it. Otherwise run the REPL."
