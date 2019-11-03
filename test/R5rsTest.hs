@@ -1,9 +1,9 @@
-module Spec where
+module R5rsTest where
 
 import Test.Hspec
 --import Test.Quickcheck
 
-import LispRepl
+import Yasih
 
 trapCatch x = extractValue $ trapError x
 
@@ -14,9 +14,5 @@ evaluate x = do
 -- Testing functions
 
 main :: IO ()
-main = putStrLn "Tests not implemented yet"
-    
-    -- hspec $ do
-    -- describe "LispParser" $ 
-    --     it "tests are not yet implemented" $
-    --     trapCatch (readExpr "(+ 2 2)") `shouldBe` Number 4
+main = do
+

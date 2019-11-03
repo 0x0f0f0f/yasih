@@ -1,7 +1,8 @@
 {-# LANGUAGE ExistentialQuantification #-}
-module Evaluator.Operators where
+module Yasih.Evaluator.Operators where
 
-import LispTypes
+import Yasih.LispTypes
+
 import Data.Char (toLower)
 import Control.Monad.Except
 

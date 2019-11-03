@@ -1,8 +1,8 @@
-module Evaluator.Lists where
+module Yasih.Evaluator.Lists where
 
-import LispTypes
-import Environment
-import Evaluator.Operators
+import Yasih.LispTypes
+import Yasih.Environment
+import Yasih.Evaluator.Operators
 
 import Control.Monad.Except
 

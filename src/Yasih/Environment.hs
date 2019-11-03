@@ -1,6 +1,6 @@
-module Environment where
+module Yasih.Environment where
 
-import LispTypes
+import Yasih.LispTypes
 
 import Data.IORef
 import Data.List

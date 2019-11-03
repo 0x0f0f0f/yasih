@@ -1,9 +1,9 @@
-module Evaluator.Strings where
+module Yasih.Evaluator.Strings where
 
-import LispParser
-import LispTypes
-import Environment
-import Evaluator.Operators
+import Yasih.LispParser
+import Yasih.LispTypes
+import Yasih.Environment
+import Yasih.Evaluator.Operators
 
 import Control.Monad.Except
 

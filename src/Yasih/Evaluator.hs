@@ -1,19 +1,19 @@
 {-# LANGUAGE FlexibleContexts #-}
-module Evaluator where
+module Yasih.Evaluator where
 
-import LispTypes
-import LispParser
-import Environment
-import Evaluator.Operators
-import Evaluator.Numerical
-import Evaluator.Char
-import Evaluator.Strings
-import Evaluator.Lists
-import Evaluator.Bool
-import Evaluator.Symbols
-import Evaluator.Equivalence
-import Evaluator.IO
-import Evaluator.Vector
+import Yasih.LispTypes
+import Yasih.LispParser
+import Yasih.Environment
+import Yasih.Evaluator.Operators
+import Yasih.Evaluator.Numerical
+import Yasih.Evaluator.Char
+import Yasih.Evaluator.Strings
+import Yasih.Evaluator.Lists
+import Yasih.Evaluator.Bool
+import Yasih.Evaluator.Symbols
+import Yasih.Evaluator.Equivalence
+import Yasih.Evaluator.IO
+import Yasih.Evaluator.Vector
 
 import Data.IORef
 import Data.Maybe
@@ -219,7 +219,7 @@ apply badForm args = throwError $ NotFunction "Not a function: " $ show badForm
 -- primitives into the new environment
 primitiveBindings :: IO Env
 primitiveBindings = nullEnv >>=
-    flip bindVars (map (makeFunc IOFunc) Evaluator.ioPrimitives ++ map (makeFunc PrimitiveFunc) primitives)
+    flip bindVars (map (makeFunc IOFunc) Yasih.Evaluator.ioPrimitives ++ map (makeFunc PrimitiveFunc) primitives)
     where makeFunc constructor (var, func) = (var, constructor func)
 
 -- |Primitive functions table
@@ -235,7 +235,7 @@ primitives =
     vectorPrimitives
 
 ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
-ioPrimitives = ("apply", applyProc) : Evaluator.IO.ioPrimitives
+ioPrimitives = ("apply", applyProc) : Yasih.Evaluator.IO.ioPrimitives
 
 -- | Wrapper around apply responsible for destructuring the argument list
 -- into the form apply expects

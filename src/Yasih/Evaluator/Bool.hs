@@ -1,8 +1,8 @@
-module Evaluator.Bool where
+module Yasih.Evaluator.Bool where
 
-import LispTypes
-import Environment
-import Evaluator.Operators
+import Yasih.LispTypes
+import Yasih.Environment
+import Yasih.Evaluator.Operators
 
 boolPrimitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 boolPrimitives =

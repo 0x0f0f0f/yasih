@@ -1,8 +1,8 @@
-module Evaluator.Symbols where
+module Yasih.Evaluator.Symbols where
 
-import LispTypes
-import Environment
-import Evaluator.Operators
+import Yasih.LispTypes
+import Yasih.Environment
+import Yasih.Evaluator.Operators
 
 symbolPrimitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 symbolPrimitives =

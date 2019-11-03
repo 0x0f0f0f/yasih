@@ -1,6 +1,6 @@
 module Main where
 
-import LispRepl
+import Yasih.LispRepl
 
 import Control.Monad
 import System.IO

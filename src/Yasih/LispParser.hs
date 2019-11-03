@@ -1,6 +1,6 @@
-module LispParser where
+module Yasih.LispParser where
 
-import LispTypes
+import Yasih.LispTypes
 
 import Control.Monad
 import Control.Monad.Except

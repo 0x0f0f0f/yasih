@@ -1,9 +1,9 @@
-module Evaluator.IO where
+module Yasih.Evaluator.IO where
 
-import LispTypes
-import LispParser
-import Environment
-import Evaluator.Operators
+import Yasih.LispTypes
+import Yasih.LispParser
+import Yasih.Environment
+import Yasih.Evaluator.Operators
 
 import Control.Monad.Except
 import System.IO hiding (try)

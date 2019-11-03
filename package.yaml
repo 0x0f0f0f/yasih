@@ -29,6 +29,9 @@ dependencies:
 
 library:
   source-dirs: src
+  exposed-modules:
+    - Yasih
+    - Yasih.LispRepl
 
 executables:
   yasih:
@@ -42,8 +45,8 @@ executables:
     - yasih
 
 tests:
-  yasih-test:
-    main:                Spec.hs
+  r5rs-test:
+    main:                R5rsTest.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -52,3 +55,4 @@ tests:
     dependencies:
     - yasih
     - hspec
+    - tasty

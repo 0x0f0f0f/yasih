@@ -1,4 +1,4 @@
-module LispTypes where
+module Yasih.LispTypes where
 
 import Data.Ratio
 import Data.Complex

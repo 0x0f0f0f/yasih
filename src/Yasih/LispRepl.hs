@@ -1,11 +1,11 @@
-module LispRepl where
+module Yasih.LispRepl where
 
-import LispTypes
-import Evaluator
-import Environment
-import LispParser
+import Yasih.LispTypes
+import Yasih.Evaluator
+import Yasih.Environment
+import Yasih.LispParser
+
 import Control.Monad.Except
-
 import Data.Char (isSpace)
 import Data.List (isPrefixOf)
 import System.IO hiding (try) -- Hiding try because of Parsec try usage
