@@ -81,4 +81,4 @@ spec =
             readExpr ";skip\nartoodetoo ;extra will throw\n;skip" `shouldBe` (Right $ Atom "artoodetoo")
 
         it "Comment: multi-line line" $
-            readExpr "{-Han\nShot\nFirst\n-} (c3 {- these are not the droids you're looking for-} po)\n {-Jar Jar Binks =?= Sith Lord -}" `shouldBe` (Right $ List [Atom "c3",Atom "po"])
+            readExpr "#|Han\nShot\nFirst\n|# (c3 #| these are not the droids you're looking for|# po)\n #|Jar Jar Binks =?= Sith Lord |#" `shouldBe` (Right $ List [Atom "c3",Atom "po"])
