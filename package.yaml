@@ -61,3 +61,4 @@ tests:
     - yasih
     - hspec
     - tasty
+    - tasty-quickcheck

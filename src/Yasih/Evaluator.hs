@@ -14,6 +14,7 @@ import Yasih.Evaluator.Symbols
 import Yasih.Evaluator.Equivalence
 import Yasih.Evaluator.IO
 import Yasih.Evaluator.Vector
+import Yasih.Evaluator.Extension
 
 import Data.IORef
 import Data.Maybe
@@ -232,6 +233,7 @@ primitives =
     symbolPrimitives ++
     listPrimitives ++
     equivalencePrimitives ++
+    extensionPrimitives ++ 
     vectorPrimitives
 
 ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]

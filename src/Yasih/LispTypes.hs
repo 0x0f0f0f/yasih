@@ -101,9 +101,9 @@ showVal Func { params = args, vararg = varargs, body = body, closure = env} =
         Just arg -> " . " ++ arg) ++ ") ...)"
 showVal (IOFunc _) = "<IO primitive>"
 showVal (Port _) = "<IO port>"
+
 -- |Helper function mapping showVal over a Lisp List
 -- |Basically unwords for LispVal
-
 {-
  unwordsList is defined in point-free style
  no argument is specified and it is written only in
@@ -119,6 +119,7 @@ showVal (Port _) = "<IO port>"
 unwordsList :: [LispVal] -> String
 unwordsList = unwords . map showVal
 
+-- |unwords a LispVal Vector
 unwordsVector :: LispVal -> String
 unwordsVector (Vector y) = unwords . map showVal $ elems y
 
@@ -127,6 +128,25 @@ unwordsVector (Vector y) = unwords . map showVal $ elems y
 -- for details on typeclasses
 instance Show LispVal where show = showVal
 
+-- |Dump a function code, like showVal but shows the full function code
+dumpVal :: LispVal -> String
+dumpVal Func { params = args, vararg = varargs, body = body, closure = env} =
+    "(lambda (" ++ unwords args ++
+    (case varargs of
+        Nothing -> ""
+        Just arg -> " . " ++ arg) ++ ") " ++ unwordsDumpList body ++ ")"
+dumpVal (List l) = "(" ++ unwordsDumpList l ++ ")"
+dumpVal (DottedList hd tl) = "(" ++ unwordsDumpList hd ++ " . " ++ dumpVal tl ++ ")"
+dumpVal v@(Vector x) = "#(" ++ unwordsDumpVector v ++ ")"
+dumpVal other = showVal other
+
+-- |Same as unwordsList but call dumpVal instead of showVal
+unwordsDumpList :: [LispVal] -> String
+unwordsDumpList = unwords . map dumpVal
+
+-- |Same as unwordsVector but call dumpVal instead of showVal
+unwordsDumpVector :: LispVal -> String
+unwordsDumpVector (Vector y) = unwords . map dumpVal $ elems y
 
 -- ERRORS
 
