@@ -31,8 +31,8 @@
 (define (do . forms)
     (last forms))
 
-; TODO finish
-; (define-syntax (while c b) ((lambda (cond body) `((define (while-loop) (if ,cond (begin ,body (while-loop)) '())) (while-loop))) c b))
+; while loop
+(define-syntax (while c b) ((lambda (cond body) `(begin (define (while-loop) (if ,cond (begin ,body (while-loop)) '())) (while-loop))) c b))
 
 (define (begin . forms)
     (last forms))
