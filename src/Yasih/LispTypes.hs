@@ -188,6 +188,16 @@ showError (ReservedKeyword var) = "reserved keyword: " ++ var
 
 instance Show LispError where show = showError
 
+-- |Represent a callframe and a call stack
+newtype Callframe = Callframe LispVal
+type Callstack = [Callframe]
+
+instance Show Callframe where
+    show (Callframe val) = showVal val
+
+-- |Represents an error with a stack trace
+data LispErrorStack = LispErrorStack LispError Callstack
+
 -- |Type to represent functions that may throw a LispError or return a value.
 
 -- Either is only partially applied (curried) to LispError so that ThrowsError

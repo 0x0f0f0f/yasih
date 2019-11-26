@@ -1,12 +1,16 @@
 ## Roadmap
 
+- [ ] Alternative syntax
 - [ ] Basic Unit Test Suite
 - [ ] Multi line parsing in REPL
 - [ ] Implement the full [R5RS](https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/R5RS-Index.html)
 - [ ] Correct Char parsing (extra characters)
 - [ ] String interpolation
+- [ ] Garbage collector
+- [ ] Tail call optimization
 - [ ] Stack traces
-- [X] ~~begin~~ while and do blocks
+- [X] gettype
+- [X] begin, while and do blocks
 - [X] Macro expander
 - [X] Quasiquotation
 - [X] Throw error when redefining a reserved keyword
