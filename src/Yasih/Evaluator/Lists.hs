@@ -10,6 +10,7 @@ listPrimitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 listPrimitives =
     -- List Primitives
     [("car", car),
+    ("first", car),
     ("cdr", cdr),
     ("cons", cons),
     -- List selection
@@ -86,5 +87,7 @@ listHead badArgList          = throwError $ NumArgs 1 badArgList
 
 -- |A last statement returns the last value of a list
 lastBlock :: [LispVal] -> ThrowsError LispVal
-lastBlock [x] = return x
-lastBlock (x:xs) = lastBlock xs
+lastBlock [List x] = return $ last x
+lastBlock [l@(List [])] = return l
+lastBlock [notList] = throwError $ TypeMismatch "list" notList
+lastBlock badArgList = throwError $ NumArgs 1 badArgList

@@ -16,6 +16,12 @@ split (c:cs) d
     | otherwise = (c : head (split cs d)) : tail (split cs d)
 
 
+usage = do
+    hPutStrLn stderr ("Usage: \nyasih filename\t\t(run program)\n"
+        ++ "yasih -e EXPR\t\t(evaluate an expression)\n"
+        ++ "yasih\t\t\t(run the repl)\n"
+        ++ "yasih -s filename\t(run program and show evaluation results)")
+
 -- |Parse and eval the first argument
 -- Or enter into a REPL Loop
 main :: IO ()
@@ -28,16 +34,13 @@ main = do
         Nothing -> return ["/usr/lib/yasih/", homedir ++ "/.local/lib/yasih/"]
     
     -- filter out existing paths
-    epaths <- filterM doesDirectoryExist ipaths 
-
-    -- mapM_ putStrLn epaths
+    epaths <- filterM doesDirectoryExist ipaths
 
     args <- getArgs
     case args of 
         [] -> runRepl epaths -- No argument is passed => run the REPL
         ["-e", expr] -> runOne epaths expr              -- Run a single expression
         ("-s" : rest) -> runProgram epaths rest True -- Run the program and show evaluation result
+        ["-h"] -> usage
+        ["--help"] -> usage
         [filename] -> runProgram epaths args False      -- Just run the program
-        _ -> do
-            hPutStrLn stderr "Usage: yasih [EXPR]"
-            hPutStrLn stderr "If EXPR is provided evaluate it. Otherwise run the REPL."
