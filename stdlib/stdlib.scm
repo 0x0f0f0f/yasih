@@ -168,10 +168,10 @@
 ; avoid finding subsequent values by testing for a non false value
 ; and returning the existing accumulator if set 
 (define (mem-helper pred op)
-    ((lambda (acc next)
-        (if (and (not acc) (pred (op next)))
+    (lambda (acc next)
+        (if (and (eq? acc #f) (pred (op next)))
             next
-            acc))))
+            acc)))
 
 ; Return the first sublist of lst whose car is eq? to x where the sublists of 
 ; lst are non-empty lists. 
