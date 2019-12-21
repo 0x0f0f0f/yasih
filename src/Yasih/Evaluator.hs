@@ -233,7 +233,7 @@ primitives =
     symbolPrimitives ++
     listPrimitives ++
     equivalencePrimitives ++
-    extensionPrimitives ++ 
+    extensionPrimitives ++
     vectorPrimitives
 
 ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]

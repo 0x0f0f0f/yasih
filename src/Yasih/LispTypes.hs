@@ -183,17 +183,26 @@ showError (BadSpecialForm msg form) = msg ++ ": " ++ show form
 showError (NotFunction msg func) = msg ++ ": " ++ show func
 showError (UnboundVar msg varname) = msg ++ ": " ++ varname
 showError (NumArgs expected found) = "Expected " ++ show expected
-    ++ " args: found values " ++ unwordsList found
+    ++ " args: found " ++ (show . length) found ++ " args " ++  if not (null found) then " with values " ++ unwordsList found else ""
 showError (ReservedKeyword var) = "reserved keyword: " ++ var
 
 instance Show LispError where show = showError
 
 -- |Represent a callframe and a call stack
-newtype Callframe = Callframe LispVal
+newtype Callframe = Callframe String
 type Callstack = [Callframe]
 
 instance Show Callframe where
-    show (Callframe val) = showVal val
+    show (Callframe val) = val
+
+
+push :: Callstack -> Callframe ->  Callstack
+push c f = f:c
+
+pop :: Callstack -> (Callframe, Callstack)
+pop [] = error "Fatal: Stack underflow!"
+pop (x:xs) = (x, xs)
+
 
 -- |Represents an error with a stack trace
 data LispErrorStack = LispErrorStack LispError Callstack
